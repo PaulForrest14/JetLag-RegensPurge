@@ -34,25 +34,43 @@ h1, h2 {
 #playerArea input {
     padding: 10px;
     font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
 }
 
 #playerArea button {
     padding: 10px 15px;
     cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background: #007bff;
+    color: white;
+    font-weight: bold;
 }
 
 #scoreBoard {
-    background: white;
+    background: rgba(255, 255, 255, 0.96);
     padding: 15px;
-    border-radius: 10px;
-    max-width: 500px;
+    border-radius: 12px;
+    max-width: 520px;
     margin: 0 auto 25px auto;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .score {
     font-size: 22px;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+#scoreBoard button {
+    padding: 10px 16px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
     font-weight: bold;
 }
 
@@ -60,23 +78,35 @@ h1, h2 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
+    align-items: stretch;
 }
 
 .card {
-    background: white;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    width: 200px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    width: 220px;
     margin: 0 auto;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
 }
 
 .card img {
     display: block;
-    width: 200px;
-    height: 300px;
+    width: 220px;
+    height: 330px;
     object-fit: cover;
     cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.card img:hover {
+    transform: scale(1.02);
 }
 
 .card button {
@@ -87,29 +117,51 @@ h1, h2 {
     background: #28a745;
     color: white;
     cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .card button:hover {
     background: #218838;
 }
 
+.card button:active {
+    transform: scale(0.98);
+}
+
+.card.task-completed {
+    animation: taskCompletePulse 0.7s ease;
+}
+
+@keyframes taskCompletePulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(40, 167, 69, 0); }
+    35% { transform: scale(1.04); box-shadow: 0 0 18px rgba(40, 167, 69, 0.6); }
+    100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+}
+
 #leaderboard {
     max-width: 500px;
     margin: 20px auto;
-    background: white;
+    background: rgba(255, 255, 255, 0.96);
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 #leaderboard ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 #leaderboard li {
-    padding: 8px;
+    padding: 10px 8px;
     border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+#leaderboard li:last-child {
+    border-bottom: none;
 }
 
 .modal {
@@ -117,7 +169,7 @@ h1, h2 {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.82);
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -129,30 +181,32 @@ h1, h2 {
 
 .modal-content {
     position: relative;
-    max-width: 90vw;
+    max-width: 92vw;
     max-height: 90vh;
-    background: white;
-    border-radius: 12px;
-    padding: 10px;
+    background: rgba(255,255,255,0.96);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
 }
 
 .modal-content img {
     display: block;
-    max-width: 90vw;
-    max-height: 80vh;
+    max-width: 92vw;
+    max-height: 82vh;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 .close-btn {
     position: absolute;
-    top: 15px;
-    right: 20px;
+    top: 16px;
+    right: 22px;
     color: white;
     font-size: 42px;
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
+    z-index: 1001;
 }
 </style>
 
@@ -250,6 +304,7 @@ if (isFirebaseConfigured) {
 let players = {};
 let currentPlayer = "";
 let activeImages = [];
+let animationIndex = null;
 
 function getLocalState() {
     try {
@@ -454,6 +509,7 @@ function completeTask(index) {
         return;
     }
 
+    animationIndex = index;
     updateScore(points);
 
     activeImages.splice(index, 1);
@@ -465,6 +521,11 @@ function completeTask(index) {
 
     persistState();
     render();
+
+    window.setTimeout(() => {
+        animationIndex = null;
+        render();
+    }, 700);
 }
 
 function render() {
@@ -474,6 +535,10 @@ function render() {
     activeImages.forEach((task, index) => {
         const card = document.createElement("div");
         card.classList.add("card");
+
+        if (animationIndex === index) {
+            card.classList.add("task-completed");
+        }
 
         const buttonText = task.customPoints
             ? "✅ Erledigt (Punkte eingeben)"
