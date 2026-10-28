@@ -52,7 +52,7 @@ h1, h2 {
 
 #gameArea {
     display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
 
@@ -152,9 +152,10 @@ h1, h2 {
     <ul id="leaderboardList"></ul>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 
-// Bilderpool
 const images = [
     "images/aufgabe1.png",
     "images/aufgabe2.png",
@@ -168,211 +169,232 @@ const images = [
     "images/aufgabe10.png"
 ];
 
-// Spielerdaten laden
-let players = JSON.parse(localStorage.getItem("players")) || {};
+// Firebase-Konfiguration eintragen
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
 
+const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let db = null;
+let gameRef = null;
+
+if (isFirebaseConfigured) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    gameRef = db.ref("jetlag-regenspurge");
+}
+
+let players = {};
 let currentPlayer = "";
 let activeImages = [];
 
-// Spieler auswählen
+function getLocalState() {
+    try {
+        return JSON.parse(localStorage.getItem("jetlag-regenspurge")) || {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function saveLocalState() {
+    localStorage.setItem("jetlag-regenspurge", JSON.stringify({
+        players,
+        activeImages
+    }));
+}
+
+function persistState() {
+    if (gameRef) {
+        gameRef.set({ players, activeImages });
+        return;
+    }
+
+    saveLocalState();
+}
+
+function initializeSharedState() {
+    if (gameRef) {
+        gameRef.on("value", (snapshot) => {
+            const data = snapshot.val() || {};
+            players = data.players || {};
+            activeImages = data.activeImages || [];
+
+            if (activeImages.length === 0) {
+                initializeGame();
+                return;
+            }
+
+            updatePlayerDisplay();
+            render();
+            updateLeaderboard();
+        });
+        return;
+    }
+
+    const saved = getLocalState();
+    players = saved.players || {};
+    activeImages = saved.activeImages || [];
+
+    if (activeImages.length === 0) {
+        initializeGame();
+    } else {
+        render();
+    }
+
+    updateLeaderboard();
+}
+
 function selectPlayer() {
+    const name = document.getElementById("playerName").value.trim();
 
-    const name = document
-        .getElementById("playerName")
-        .value
-        .trim();
-
-    if(name === "") {
+    if (name === "") {
         alert("Bitte Spielernamen eingeben.");
         return;
     }
 
     currentPlayer = name;
 
-    if(!players[name]) {
-        players[name] = {
-            score: 0,
-            highscore: 0
-        };
+    if (!players[name]) {
+        players[name] = { score: 0, highscore: 0 };
+        persistState();
     }
 
-    savePlayers();
     updatePlayerDisplay();
 
-    if(activeImages.length === 0) {
+    if (activeImages.length === 0) {
         initializeGame();
     }
 }
 
-// Speichern
-function savePlayers() {
-    localStorage.setItem(
-        "players",
-        JSON.stringify(players)
-    );
-}
-
-// Spieleranzeige aktualisieren
 function updatePlayerDisplay() {
+    if (!currentPlayer) return;
 
-    if(!currentPlayer) return;
-
-    document.getElementById("activePlayer")
-        .textContent = currentPlayer;
-
-    document.getElementById("score")
-        .textContent = players[currentPlayer].score;
-
-    document.getElementById("highscore")
-        .textContent = players[currentPlayer].highscore;
+    document.getElementById("activePlayer").textContent = currentPlayer;
+    document.getElementById("score").textContent = players[currentPlayer]?.score ?? 0;
+    document.getElementById("highscore").textContent = players[currentPlayer]?.highscore ?? 0;
 
     updateLeaderboard();
 }
 
-// Rangliste
 function updateLeaderboard() {
-
-    const list =
-        document.getElementById("leaderboardList");
-
+    const list = document.getElementById("leaderboardList");
     list.innerHTML = "";
 
-    const ranking =
-        Object.entries(players)
-        .sort((a,b) =>
-            b[1].highscore - a[1].highscore
-        );
+    const ranking = Object.entries(players).sort((a, b) => b[1].highscore - a[1].highscore);
 
-    ranking.forEach(([name,data]) => {
-
-        const li =
-            document.createElement("li");
-
-        li.textContent =
-            `${name}: ${data.highscore} Punkte`;
-
+    ranking.forEach(([name, data]) => {
+        const li = document.createElement("li");
+        li.textContent = `${name}: ${data.highscore} Punkte`;
         list.appendChild(li);
-
     });
 }
 
-// Punkte vergeben
 function updateScore(points) {
-
-    if(!currentPlayer) {
+    if (!currentPlayer) {
         alert("Bitte zuerst einen Spieler auswählen.");
         return;
     }
 
-    players[currentPlayer].score += points;
-
-    if(
-        players[currentPlayer].score >
-        players[currentPlayer].highscore
-    ) {
-        players[currentPlayer].highscore =
-            players[currentPlayer].score;
+    if (!players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
     }
 
-    savePlayers();
+    players[currentPlayer].score += points;
+
+    if (players[currentPlayer].score > players[currentPlayer].highscore) {
+        players[currentPlayer].highscore = players[currentPlayer].score;
+    }
+
+    persistState();
     updatePlayerDisplay();
 }
 
-// Punktestand zurücksetzen
 function resetScore() {
+    if (!currentPlayer) return;
 
-    if(!currentPlayer) return;
+    if (!players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
+    }
 
     players[currentPlayer].score = 0;
-
-    savePlayers();
+    persistState();
     updatePlayerDisplay();
 }
 
-// Zufallsbild
 function getRandomImage() {
+    const available = images.filter(img => !activeImages.includes(img));
 
-    const available =
-        images.filter(
-            img => !activeImages.includes(img)
-        );
-
-    if(available.length === 0) {
+    if (available.length === 0) {
         return null;
     }
 
-    return available[
-        Math.floor(
-            Math.random() * available.length
-        )
-    ];
+    return available[Math.floor(Math.random() * available.length)];
 }
 
-// Spiel starten
 function initializeGame() {
-
     activeImages = [];
 
-    for(let i = 0; i < 5; i++) {
-
+    for (let i = 0; i < 5; i++) {
         const image = getRandomImage();
-
-        if(image) {
+        if (image) {
             activeImages.push(image);
         }
     }
 
+    persistState();
     render();
 }
 
-// Aufgabe erledigt
 function completeTask(index) {
+    if (!currentPlayer) {
+        alert("Bitte zuerst einen Spieler auswählen.");
+        return;
+    }
+
+    if (!activeImages[index]) {
+        return;
+    }
 
     updateScore(10);
 
-    activeImages.splice(index,1);
+    activeImages.splice(index, 1);
 
-    const nextImage =
-        getRandomImage();
-
-    if(nextImage) {
+    const nextImage = getRandomImage();
+    if (nextImage) {
         activeImages.push(nextImage);
     }
 
+    persistState();
     render();
 }
 
-// Aufgaben anzeigen
 function render() {
-
-    const gameArea =
-        document.getElementById("gameArea");
-
+    const gameArea = document.getElementById("gameArea");
     gameArea.innerHTML = "";
 
-    activeImages.forEach((image,index) => {
-
-        const card =
-            document.createElement("div");
-
+    activeImages.forEach((image, index) => {
+        const card = document.createElement("div");
         card.classList.add("card");
 
         card.innerHTML = `
             <img src="${image}" alt="Aufgabe">
-
             <button onclick="completeTask(${index})">
                 ✅ Erledigt (+10 Punkte)
             </button>
         `;
 
         gameArea.appendChild(card);
-
     });
 }
 
-// Beim Laden Rangliste anzeigen
+initializeSharedState();
 updateLeaderboard();
-
 </script>
 
 </body>
