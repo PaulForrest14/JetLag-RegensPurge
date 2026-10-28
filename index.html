@@ -115,7 +115,7 @@ h1, h2 {
 </head>
 <body>
 
-<h1> 🏰RegensPurge</h1>
+<h1>🎮 Aufgaben-Spiel</h1>
 
 <div id="playerArea">
     <input
@@ -162,17 +162,17 @@ h1, h2 {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 
-const images = [
-    "images/aufgabe1.png",
-    "images/aufgabe2.png",
-    "images/aufgabe3.png",
-    "images/aufgabe4.png",
-    "images/aufgabe5.png",
-    "images/aufgabe6.png",
-    "images/aufgabe7.png",
-    "images/aufgabe8.png",
-    "images/aufgabe9.png",
-    "images/aufgabe10.png"
+const tasks = [
+    { image: "images/aufgabe1.png", points: 10 },
+    { image: "images/aufgabe2.png", points: 15 },
+    { image: "images/aufgabe3.png", points: 20 },
+    { image: "images/aufgabe4.png", points: 25 },
+    { image: "images/aufgabe5.png", points: 30 },
+    { image: "images/aufgabe6.png", points: 35 },
+    { image: "images/aufgabe7.png", points: 40 },
+    { image: "images/aufgabe8.png", points: 45 },
+    { image: "images/aufgabe9.png", points: 50 },
+    { image: "images/aufgabe10.png", points: 60 }
 ];
 
 // Firebase-Konfiguration eintragen
@@ -333,8 +333,8 @@ function resetScore() {
     updatePlayerDisplay();
 }
 
-function getRandomImage() {
-    const available = images.filter(img => !activeImages.includes(img));
+function getRandomTask() {
+    const available = tasks.filter(task => !activeImages.some(active => active.image === task.image));
 
     if (available.length === 0) {
         return null;
@@ -347,9 +347,9 @@ function initializeGame() {
     activeImages = [];
 
     for (let i = 0; i < 5; i++) {
-        const image = getRandomImage();
-        if (image) {
-            activeImages.push(image);
+        const task = getRandomTask();
+        if (task) {
+            activeImages.push(task);
         }
     }
 
@@ -363,17 +363,18 @@ function completeTask(index) {
         return;
     }
 
-    if (!activeImages[index]) {
+    const task = activeImages[index];
+    if (!task) {
         return;
     }
 
-    updateScore(10);
+    updateScore(task.points);
 
     activeImages.splice(index, 1);
 
-    const nextImage = getRandomImage();
-    if (nextImage) {
-        activeImages.push(nextImage);
+    const nextTask = getRandomTask();
+    if (nextTask) {
+        activeImages.push(nextTask);
     }
 
     persistState();
@@ -384,14 +385,14 @@ function render() {
     const gameArea = document.getElementById("gameArea");
     gameArea.innerHTML = "";
 
-    activeImages.forEach((image, index) => {
+    activeImages.forEach((task, index) => {
         const card = document.createElement("div");
         card.classList.add("card");
 
         card.innerHTML = `
-            <img src="${image}" alt="Aufgabe">
+            <img src="${task.image}" alt="Aufgabe">
             <button onclick="completeTask(${index})">
-                ✅ Erledigt (+10 Punkte)
+                ✅ Erledigt (+${task.points} Punkte)
             </button>
         `;
 
