@@ -10,11 +10,17 @@
     box-sizing: border-box;
 }
 
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
     min-height: 100vh;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
+    color: #1f2937;
+    background-image: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
         url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");
     background-size: cover;
     background-position: center;
@@ -24,139 +30,177 @@ body {
 
 h1, h2 {
     text-align: center;
+    margin: 0;
 }
 
-#playerArea {
-    text-align: center;
+#app {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 18px 40px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
     margin-bottom: 20px;
 }
 
+#playerArea {
+    background: rgba(255,255,255,0.9);
+    padding: 18px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
 #playerArea input {
-    padding: 10px;
+    padding: 11px 14px;
     font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid #bbb;
+    border-radius: 10px;
+    border: 1px solid #c7d2fe;
+    min-width: 220px;
+    outline: none;
+}
+
+#playerArea button,
+#scoreBoard button {
+    border: none;
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
 }
 
 #playerArea button {
-    padding: 10px 15px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    background: #007bff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
     color: white;
-    font-weight: bold;
+}
+
+#playerArea button:hover,
+#scoreBoard button:hover {
+    filter: brightness(1.05);
+}
+
+#playerArea button:active,
+#scoreBoard button:active {
+    transform: translateY(1px);
 }
 
 #scoreBoard {
-    background: rgba(255, 255, 255, 0.96);
-    padding: 15px;
-    border-radius: 12px;
-    max-width: 520px;
-    margin: 0 auto 25px auto;
+    background: rgba(255,255,255,0.92);
+    border-radius: 18px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    padding: 18px 22px;
+    width: min(540px, 100%);
+    margin: 0 auto 22px;
+    display: grid;
+    gap: 10px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+#scoreBoard .stat {
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .score {
-    font-size: 22px;
-    font-weight: bold;
-    margin: 8px 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
 }
 
 #scoreBoard button {
-    padding: 10px 16px;
-    background: #6c757d;
+    background: linear-gradient(135deg, #64748b, #475569);
     color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
+    width: fit-content;
+    margin: 8px auto 0;
+}
+
+.board-shell {
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 22px;
+    padding: 18px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
 }
 
 #gameArea {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 20px;
     align-items: stretch;
 }
 
 .card {
-    background: rgba(255, 255, 255, 0.96);
-    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    width: 220px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+    width: min(220px, 100%);
     margin: 0 auto;
+    border: 1px solid rgba(148, 163, 184, 0.35);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.26);
 }
 
 .card img {
     display: block;
-    width: 220px;
-    height: 330px;
+    width: 100%;
+    height: 300px;
     object-fit: cover;
     cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.card img:hover {
-    transform: scale(1.02);
 }
 
 .card button {
     width: 100%;
     border: none;
-    padding: 15px;
-    font-size: 18px;
-    background: #28a745;
+    padding: 14px 10px;
+    font-size: 17px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
     color: white;
     cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .card button:hover {
-    background: #218838;
-}
-
-.card button:active {
-    transform: scale(0.98);
+    background: linear-gradient(135deg, #16a34a, #15803d);
 }
 
 .card.task-completed {
-    animation: taskCompletePulse 0.7s ease;
+    animation: pulseDone 0.7s ease;
 }
 
-@keyframes taskCompletePulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 rgba(40, 167, 69, 0); }
-    35% { transform: scale(1.04); box-shadow: 0 0 18px rgba(40, 167, 69, 0.6); }
-    100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+@keyframes pulseDone {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
+    30% { transform: scale(1.03); box-shadow: 0 0 20px rgba(34,197,94,0.7); }
+    100% { transform: scale(1); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2); }
 }
 
 #leaderboard {
-    max-width: 500px;
-    margin: 20px auto;
-    background: rgba(255, 255, 255, 0.96);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.94);
+    border-radius: 18px;
+    padding: 18px 20px 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    width: min(540px, 100%);
+    margin: 24px auto 0;
 }
 
 #leaderboard ul {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 14px 0 0;
 }
 
 #leaderboard li {
-    padding: 10px 8px;
-    border-bottom: 1px solid #ddd;
+    padding: 10px 6px;
+    border-bottom: 1px solid #e2e8f0;
     font-weight: bold;
 }
 
@@ -169,10 +213,10 @@ h1, h2 {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(0,0,0,0.82);
+    background: rgba(15, 23, 42, 0.82);
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 18px;
 }
 
 .modal.show {
@@ -181,79 +225,62 @@ h1, h2 {
 
 .modal-content {
     position: relative;
-    max-width: 92vw;
-    max-height: 90vh;
-    background: rgba(255,255,255,0.96);
-    border-radius: 16px;
+    background: rgba(255,255,255,0.97);
+    border-radius: 18px;
     padding: 12px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.38);
+    max-width: 90vw;
+    max-height: 88vh;
 }
 
 .modal-content img {
     display: block;
-    max-width: 92vw;
-    max-height: 82vh;
+    max-width: 90vw;
+    max-height: 80vh;
     object-fit: contain;
     border-radius: 10px;
 }
 
 .close-btn {
     position: absolute;
-    top: 16px;
-    right: 22px;
+    top: 14px;
+    right: 18px;
     color: white;
     font-size: 42px;
     font-weight: bold;
-    cursor: pointer;
     line-height: 1;
+    cursor: pointer;
     z-index: 1001;
 }
 </style>
-
 </head>
 <body>
 
-<h1>🎮 Aufgaben-Spiel</h1>
+<div id="app">
+    <h1>🎮 Aufgaben-Spiel</h1>
 
-<div id="playerArea">
-    <input
-        type="text"
-        id="playerName"
-        placeholder="Spielername">
-
-    <button onclick="selectPlayer()">
-        Spieler starten
-    </button>
-</div>
-
-<div id="scoreBoard">
-    <div>
-        Spieler:
-        <strong id="activePlayer">-</strong>
+    <div class="topbar">
+        <div id="playerArea">
+            <input type="text" id="playerName" placeholder="Spielername">
+            <button onclick="selectPlayer()">Spieler starten</button>
+        </div>
     </div>
 
-    <div class="score">
-        Punkte:
-        <span id="score">0</span>
+    <div id="scoreBoard">
+        <div class="stat">Spieler: <strong id="activePlayer">-</strong></div>
+        <div class="stat score">Punkte: <span id="score">0</span></div>
+        <div class="stat">Highscore: <span id="highscore">0</span></div>
+        <button onclick="resetScore()">Punktestand zurücksetzen</button>
     </div>
 
-    <div>
-        Highscore:
-        <span id="highscore">0</span>
+    <div class="board-shell">
+        <div id="gameArea"></div>
     </div>
 
-    <br>
-
-    <button onclick="resetScore()">
-        Punktestand zurücksetzen
-    </button>
-</div>
-
-<div id="gameArea"></div>
-
-<div id="leaderboard">
-    <h2>🏆 Bestenliste</h2>
-    <ul id="leaderboardList"></ul>
+    <div id="leaderboard">
+        <h2>🏆 Bestenliste</h2>
+        <ul id="leaderboardList"></ul>
+    </div>
 </div>
 
 <div id="imageModal" class="modal" onclick="closeImageModal()">
@@ -266,7 +293,6 @@ h1, h2 {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-
 const tasks = [
     { image: "images/card-small (1).png", points: 5, customPoints: true },
     { image: "images/card-small (2).png", points: 10, customPoints: true },
@@ -315,10 +341,7 @@ function getLocalState() {
 }
 
 function saveLocalState() {
-    localStorage.setItem("jetlag-regenspurge", JSON.stringify({
-        players,
-        activeImages
-    }));
+    localStorage.setItem("jetlag-regenspurge", JSON.stringify({ players, activeImages }));
 }
 
 function persistState() {
@@ -326,7 +349,6 @@ function persistState() {
         gameRef.set({ players, activeImages });
         return;
     }
-
     saveLocalState();
 }
 
@@ -364,14 +386,12 @@ function initializeSharedState() {
 
 function selectPlayer() {
     const name = document.getElementById("playerName").value.trim();
-
     if (name === "") {
         alert("Bitte Spielernamen eingeben.");
         return;
     }
 
     currentPlayer = name;
-
     if (!players[name]) {
         players[name] = { score: 0, highscore: 0 };
         persistState();
@@ -399,7 +419,6 @@ function updateLeaderboard() {
     list.innerHTML = "";
 
     const ranking = Object.entries(players).sort((a, b) => b[1].highscore - a[1].highscore);
-
     ranking.forEach(([name, data]) => {
         const li = document.createElement("li");
         li.textContent = `${name}: ${data.highscore} Punkte`;
@@ -441,11 +460,7 @@ function resetScore() {
 
 function getRandomTask() {
     const available = tasks.filter(task => !activeImages.some(active => active.image === task.image));
-
-    if (available.length === 0) {
-        return null;
-    }
-
+    if (available.length === 0) return null;
     return available[Math.floor(Math.random() * available.length)];
 }
 
@@ -454,9 +469,7 @@ function initializeGame() {
 
     for (let i = 0; i < 3; i++) {
         const task = getRandomTask();
-        if (task) {
-            activeImages.push(task);
-        }
+        if (task) activeImages.push(task);
     }
 
     persistState();
@@ -477,19 +490,14 @@ function closeImageModal() {
 }
 
 function getCustomTaskPoints(task) {
-    const input = window.prompt(`Punkte für Aufgabe eingeben:`, String(task.points));
-
-    if (input === null) {
-        return null;
-    }
+    const input = window.prompt("Punkte für Aufgabe eingeben:", String(task.points));
+    if (input === null) return null;
 
     const points = Number.parseInt(input, 10);
-
     if (!Number.isFinite(points) || points < 0) {
         alert("Bitte eine gültige Zahl eingeben.");
         return null;
     }
-
     return points;
 }
 
@@ -500,14 +508,10 @@ function completeTask(index) {
     }
 
     const task = activeImages[index];
-    if (!task) {
-        return;
-    }
+    if (!task) return;
 
     const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
-    if (points === null) {
-        return;
-    }
+    if (points === null) return;
 
     animationIndex = index;
     updateScore(points);
@@ -515,9 +519,7 @@ function completeTask(index) {
     activeImages.splice(index, 1);
 
     const nextTask = getRandomTask();
-    if (nextTask) {
-        activeImages.push(nextTask);
-    }
+    if (nextTask) activeImages.push(nextTask);
 
     persistState();
     render();
@@ -535,7 +537,6 @@ function render() {
     activeImages.forEach((task, index) => {
         const card = document.createElement("div");
         card.classList.add("card");
-
         if (animationIndex === index) {
             card.classList.add("task-completed");
         }
@@ -546,9 +547,7 @@ function render() {
 
         card.innerHTML = `
             <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
-            <button onclick="completeTask(${index})">
-                ${buttonText}
-            </button>
+            <button onclick="completeTask(${index})">${buttonText}</button>
         `;
 
         gameArea.appendChild(card);
