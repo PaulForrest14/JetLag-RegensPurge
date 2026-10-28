@@ -12,7 +12,7 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    background-image: linear-gradient(rgba(244, 244, 244, 0.70), rgba(244, 244, 244, 0.70)),
         url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1600&q=80");
     background-size: cover;
     background-position: center;
@@ -21,13 +21,7 @@ body {
     margin: 20px;
 }
 
-h1 {
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-}
-
-h2 {
+h1, h2 {
     text-align: center;
 }
 
@@ -63,7 +57,7 @@ h2 {
 
 #gameArea {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
     gap: 20px;
 }
 
@@ -72,14 +66,11 @@ h2 {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    width: 200px;
-    margin: 0 auto;
 }
 
 .card img {
-    display: block;
-    width: 200px;
-    height: 300px;
+    width: 100%;
+    height: 250px;
     object-fit: cover;
 }
 
@@ -104,10 +95,6 @@ h2 {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-#leaderboard h2 {
-    color: #222;
 }
 
 #leaderboard ul {
@@ -167,10 +154,9 @@ h2 {
     <ul id="leaderboardList"></ul>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 
+// Bilderpool
 const images = [
     "images/aufgabe1.png",
     "images/aufgabe2.png",
@@ -184,232 +170,211 @@ const images = [
     "images/aufgabe10.png"
 ];
 
-// Firebase-Konfiguration eintragen
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-};
+// Spielerdaten laden
+let players = JSON.parse(localStorage.getItem("players")) || {};
 
-const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
-let db = null;
-let gameRef = null;
-
-if (isFirebaseConfigured) {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    gameRef = db.ref("jetlag-regenspurge");
-}
-
-let players = {};
 let currentPlayer = "";
 let activeImages = [];
 
-function getLocalState() {
-    try {
-        return JSON.parse(localStorage.getItem("jetlag-regenspurge")) || {};
-    } catch (error) {
-        return {};
-    }
-}
-
-function saveLocalState() {
-    localStorage.setItem("jetlag-regenspurge", JSON.stringify({
-        players,
-        activeImages
-    }));
-}
-
-function persistState() {
-    if (gameRef) {
-        gameRef.set({ players, activeImages });
-        return;
-    }
-
-    saveLocalState();
-}
-
-function initializeSharedState() {
-    if (gameRef) {
-        gameRef.on("value", (snapshot) => {
-            const data = snapshot.val() || {};
-            players = data.players || {};
-            activeImages = data.activeImages || [];
-
-            if (activeImages.length === 0) {
-                initializeGame();
-                return;
-            }
-
-            updatePlayerDisplay();
-            render();
-            updateLeaderboard();
-        });
-        return;
-    }
-
-    const saved = getLocalState();
-    players = saved.players || {};
-    activeImages = saved.activeImages || [];
-
-    if (activeImages.length === 0) {
-        initializeGame();
-    } else {
-        render();
-    }
-
-    updateLeaderboard();
-}
-
+// Spieler auswählen
 function selectPlayer() {
-    const name = document.getElementById("playerName").value.trim();
 
-    if (name === "") {
+    const name = document
+        .getElementById("playerName")
+        .value
+        .trim();
+
+    if(name === "") {
         alert("Bitte Spielernamen eingeben.");
         return;
     }
 
     currentPlayer = name;
 
-    if (!players[name]) {
-        players[name] = { score: 0, highscore: 0 };
-        persistState();
+    if(!players[name]) {
+        players[name] = {
+            score: 0,
+            highscore: 0
+        };
     }
 
+    savePlayers();
     updatePlayerDisplay();
 
-    if (activeImages.length === 0) {
+    if(activeImages.length === 0) {
         initializeGame();
     }
 }
 
-function updatePlayerDisplay() {
-    if (!currentPlayer) return;
+// Speichern
+function savePlayers() {
+    localStorage.setItem(
+        "players",
+        JSON.stringify(players)
+    );
+}
 
-    document.getElementById("activePlayer").textContent = currentPlayer;
-    document.getElementById("score").textContent = players[currentPlayer]?.score ?? 0;
-    document.getElementById("highscore").textContent = players[currentPlayer]?.highscore ?? 0;
+// Spieleranzeige aktualisieren
+function updatePlayerDisplay() {
+
+    if(!currentPlayer) return;
+
+    document.getElementById("activePlayer")
+        .textContent = currentPlayer;
+
+    document.getElementById("score")
+        .textContent = players[currentPlayer].score;
+
+    document.getElementById("highscore")
+        .textContent = players[currentPlayer].highscore;
 
     updateLeaderboard();
 }
 
+// Rangliste
 function updateLeaderboard() {
-    const list = document.getElementById("leaderboardList");
+
+    const list =
+        document.getElementById("leaderboardList");
+
     list.innerHTML = "";
 
-    const ranking = Object.entries(players).sort((a, b) => b[1].highscore - a[1].highscore);
+    const ranking =
+        Object.entries(players)
+        .sort((a,b) =>
+            b[1].highscore - a[1].highscore
+        );
 
-    ranking.forEach(([name, data]) => {
-        const li = document.createElement("li");
-        li.textContent = `${name}: ${data.highscore} Punkte`;
+    ranking.forEach(([name,data]) => {
+
+        const li =
+            document.createElement("li");
+
+        li.textContent =
+            `${name}: ${data.highscore} Punkte`;
+
         list.appendChild(li);
+
     });
 }
 
+// Punkte vergeben
 function updateScore(points) {
-    if (!currentPlayer) {
+
+    if(!currentPlayer) {
         alert("Bitte zuerst einen Spieler auswählen.");
         return;
-    }
-
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
     }
 
     players[currentPlayer].score += points;
 
-    if (players[currentPlayer].score > players[currentPlayer].highscore) {
-        players[currentPlayer].highscore = players[currentPlayer].score;
+    if(
+        players[currentPlayer].score >
+        players[currentPlayer].highscore
+    ) {
+        players[currentPlayer].highscore =
+            players[currentPlayer].score;
     }
 
-    persistState();
+    savePlayers();
     updatePlayerDisplay();
 }
 
+// Punktestand zurücksetzen
 function resetScore() {
-    if (!currentPlayer) return;
 
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
+    if(!currentPlayer) return;
 
     players[currentPlayer].score = 0;
-    persistState();
+
+    savePlayers();
     updatePlayerDisplay();
 }
 
+// Zufallsbild
 function getRandomImage() {
-    const available = images.filter(img => !activeImages.includes(img));
 
-    if (available.length === 0) {
+    const available =
+        images.filter(
+            img => !activeImages.includes(img)
+        );
+
+    if(available.length === 0) {
         return null;
     }
 
-    return available[Math.floor(Math.random() * available.length)];
+    return available[
+        Math.floor(
+            Math.random() * available.length
+        )
+    ];
 }
 
+// Spiel starten
 function initializeGame() {
+
     activeImages = [];
 
-    for (let i = 0; i < 5; i++) {
+    for(let i = 0; i < 5; i++) {
+
         const image = getRandomImage();
-        if (image) {
+
+        if(image) {
             activeImages.push(image);
         }
     }
 
-    persistState();
     render();
 }
 
+// Aufgabe erledigt
 function completeTask(index) {
-    if (!currentPlayer) {
-        alert("Bitte zuerst einen Spieler auswählen.");
-        return;
-    }
-
-    if (!activeImages[index]) {
-        return;
-    }
 
     updateScore(10);
 
-    activeImages.splice(index, 1);
+    activeImages.splice(index,1);
 
-    const nextImage = getRandomImage();
-    if (nextImage) {
+    const nextImage =
+        getRandomImage();
+
+    if(nextImage) {
         activeImages.push(nextImage);
     }
 
-    persistState();
     render();
 }
 
+// Aufgaben anzeigen
 function render() {
-    const gameArea = document.getElementById("gameArea");
+
+    const gameArea =
+        document.getElementById("gameArea");
+
     gameArea.innerHTML = "";
 
-    activeImages.forEach((image, index) => {
-        const card = document.createElement("div");
+    activeImages.forEach((image,index) => {
+
+        const card =
+            document.createElement("div");
+
         card.classList.add("card");
 
         card.innerHTML = `
             <img src="${image}" alt="Aufgabe">
+
             <button onclick="completeTask(${index})">
                 ✅ Erledigt (+10 Punkte)
             </button>
         `;
 
         gameArea.appendChild(card);
+
     });
 }
 
-initializeSharedState();
+// Beim Laden Rangliste anzeigen
 updateLeaderboard();
+
 </script>
 
 </body>
