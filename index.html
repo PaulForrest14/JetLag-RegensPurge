@@ -152,7 +152,7 @@ h1, h2 {
 <script>
 
 // Bilderpool
-const imagePool = [
+const images = [
     "images/aufgabe1.png",
     "images/aufgabe2.png",
     "images/aufgabe3.png",
@@ -290,7 +290,7 @@ function resetScore() {
 function getRandomImage() {
 
     const available =
-        imagePool.filter(
+        images.filter(
             img => !activeImages.includes(img)
         );
 
