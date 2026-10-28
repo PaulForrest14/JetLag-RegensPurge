@@ -76,6 +76,7 @@ h1, h2 {
     width: 200px;
     height: 300px;
     object-fit: cover;
+    cursor: pointer;
 }
 
 .card button {
@@ -109,6 +110,49 @@ h1, h2 {
 #leaderboard li {
     padding: 8px;
     border-bottom: 1px solid #ddd;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0,0,0,0.8);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+.modal-content img {
+    display: block;
+    max-width: 90vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    color: white;
+    font-size: 42px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
 }
 </style>
 
@@ -158,24 +202,31 @@ h1, h2 {
     <ul id="leaderboardList"></ul>
 </div>
 
+<div id="imageModal" class="modal" onclick="closeImageModal()">
+    <span class="close-btn" onclick="closeImageModal()">&times;</span>
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modalImage" src="" alt="Vergrößerte Aufgabe">
+    </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 
 const tasks = [
-    { image: "images/aufgabe1.png", points: 10 },
-    { image: "images/aufgabe2.png", points: 15 },
-    { image: "images/aufgabe3.png", points: 20 },
-    { image: "images/aufgabe4.png", points: 25 },
-    { image: "images/aufgabe5.png", points: 30 },
-    { image: "images/aufgabe6.png", points: 35 },
-    { image: "images/aufgabe7.png", points: 40 },
-    { image: "images/aufgabe8.png", points: 45 },
-    { image: "images/aufgabe9.png", points: 50 },
-    { image: "images/aufgabe10.png", points: 60 }
+    { image: "images/card-small (1).png", points: 5, customPoints: true },
+    { image: "images/card-small (2).png", points: 10, customPoints: true },
+    { image: "images/card-small (3).png", points: 15, customPoints: true },
+    { image: "images/card-small (4).png", points: 20, customPoints: true },
+    { image: "images/card-small (5).png", points: 25, customPoints: true },
+    { image: "images/card-small (6).png", points: 30 },
+    { image: "images/card-small (7).png", points: 35 },
+    { image: "images/card-small (8).png", points: 40 },
+    { image: "images/card-small (9).png", points: 45 },
+    { image: "images/card-small (10).png", points: 50 },
+    { image: "images/card-small (11).png", points: 55 }
 ];
 
-// Firebase-Konfiguration eintragen
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -346,7 +397,7 @@ function getRandomTask() {
 function initializeGame() {
     activeImages = [];
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
         const task = getRandomTask();
         if (task) {
             activeImages.push(task);
@@ -355,6 +406,36 @@ function initializeGame() {
 
     persistState();
     render();
+}
+
+function openImageModal(imageSrc) {
+    const modal = document.getElementById("imageModal");
+    const modalImage = document.getElementById("modalImage");
+    modalImage.src = imageSrc;
+    modal.classList.add("show");
+}
+
+function closeImageModal() {
+    const modal = document.getElementById("imageModal");
+    modal.classList.remove("show");
+    document.getElementById("modalImage").src = "";
+}
+
+function getCustomTaskPoints(task) {
+    const input = window.prompt(`Punkte für Aufgabe eingeben:`, String(task.points));
+
+    if (input === null) {
+        return null;
+    }
+
+    const points = Number.parseInt(input, 10);
+
+    if (!Number.isFinite(points) || points < 0) {
+        alert("Bitte eine gültige Zahl eingeben.");
+        return null;
+    }
+
+    return points;
 }
 
 function completeTask(index) {
@@ -368,7 +449,12 @@ function completeTask(index) {
         return;
     }
 
-    updateScore(task.points);
+    const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
+    if (points === null) {
+        return;
+    }
+
+    updateScore(points);
 
     activeImages.splice(index, 1);
 
@@ -389,10 +475,14 @@ function render() {
         const card = document.createElement("div");
         card.classList.add("card");
 
+        const buttonText = task.customPoints
+            ? "✅ Erledigt (Punkte eingeben)"
+            : `✅ Erledigt (+${task.points} Punkte)`;
+
         card.innerHTML = `
-            <img src="${task.image}" alt="Aufgabe">
+            <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
             <button onclick="completeTask(${index})">
-                ✅ Erledigt (+${task.points} Punkte)
+                ${buttonText}
             </button>
         `;
 
