@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aufgaben-Spiel</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    margin: 20px;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+#playerArea {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#playerArea input {
+    padding: 10px;
+    font-size: 16px;
+}
+
+#playerArea button {
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+#scoreBoard {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 500px;
+    margin: 0 auto 25px auto;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.score {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+#gameArea {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.card button {
+    width: 100%;
+    border: none;
+    padding: 15px;
+    font-size: 18px;
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+}
+
+.card button:hover {
+    background: #218838;
+}
+
+#leaderboard {
+    max-width: 500px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+#leaderboard ul {
+    list-style: none;
+    padding: 0;
+}
+
+#leaderboard li {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🎮 Aufgaben-Spiel</h1>
+
+<div id="playerArea">
+    <input
+        type="text"
+        id="playerName"
+        placeholder="Spielername">
+
+    <button onclick="selectPlayer()">
+        Spieler starten
+    </button>
+</div>
+
+<div id="scoreBoard">
+    <div>
+        Spieler:
+        <strong id="activePlayer">-</strong>
+    </div>
+
+    <div class="score">
+        Punkte:
+        <span id="score">0</span>
+    </div>
+
+    <div>
+        Highscore:
+        <span id="highscore">0</span>
+    </div>
+
+    <br>
+
+    <button onclick="resetScore()">
+        Punktestand zurücksetzen
+    </button>
+</div>
+
+<div id="gameArea"></div>
+
+<div id="leaderboard">
+    <h2>🏆 Bestenliste</h2>
+    <ul id="leaderboardList"></ul>
+</div>
+
+<script>
+
+// Bilderpool
+const imagePool = [
+    "bilder/aufgabe1.jpg",
+    "bilder/aufgabe2.jpg",
+    "bilder/aufgabe3.jpg",
+    "bilder/aufgabe4.jpg",
+    "bilder/aufgabe5.jpg",
+    "bilder/aufgabe6.jpg",
+    "bilder/aufgabe7.jpg",
+    "bilder/aufgabe8.jpg",
+    "bilder/aufgabe9.jpg",
+    "bilder/aufgabe10.jpg"
+];
+
+// Spielerdaten laden
+let players = JSON.parse(localStorage.getItem("players")) || {};
+
+let currentPlayer = "";
+let activeImages = [];
+
+// Spieler auswählen
+function selectPlayer() {
+
+    const name = document
+        .getElementById("playerName")
+        .value
+        .trim();
+
+    if(name === "") {
+        alert("Bitte Spielernamen eingeben.");
+        return;
+    }
+
+    currentPlayer = name;
+
+    if(!players[name]) {
+        players[name] = {
+            score: 0,
+            highscore: 0
+        };
+    }
+
+    savePlayers();
+    updatePlayerDisplay();
+
+    if(activeImages.length === 0) {
+        initializeGame();
+    }
+}
+
+// Speichern
+function savePlayers() {
+    localStorage.setItem(
+        "players",
+        JSON.stringify(players)
+    );
+}
+
+// Spieleranzeige aktualisieren
+function updatePlayerDisplay() {
+
+    if(!currentPlayer) return;
+
+    document.getElementById("activePlayer")
+        .textContent = currentPlayer;
+
+    document.getElementById("score")
+        .textContent = players[currentPlayer].score;
+
+    document.getElementById("highscore")
+        .textContent = players[currentPlayer].highscore;
+
+    updateLeaderboard();
+}
+
+// Rangliste
+function updateLeaderboard() {
+
+    const list =
+        document.getElementById("leaderboardList");
+
+    list.innerHTML = "";
+
+    const ranking =
+        Object.entries(players)
+        .sort((a,b) =>
+            b[1].highscore - a[1].highscore
+        );
+
+    ranking.forEach(([name,data]) => {
+
+        const li =
+            document.createElement("li");
+
+        li.textContent =
+            `${name}: ${data.highscore} Punkte`;
+
+        list.appendChild(li);
+
+    });
+}
+
+// Punkte vergeben
+function updateScore(points) {
+
+    if(!currentPlayer) {
+        alert("Bitte zuerst einen Spieler auswählen.");
+        return;
+    }
+
+    players[currentPlayer].score += points;
+
+    if(
+        players[currentPlayer].score >
+        players[currentPlayer].highscore
+    ) {
+        players[currentPlayer].highscore =
+            players[currentPlayer].score;
+    }
+
+    savePlayers();
+    updatePlayerDisplay();
+}
+
+// Punktestand zurücksetzen
+function resetScore() {
+
+    if(!currentPlayer) return;
+
+    players[currentPlayer].score = 0;
+
+    savePlayers();
+    updatePlayerDisplay();
+}
+
+// Zufallsbild
+function getRandomImage() {
+
+    const available =
+        imagePool.filter(
+            img => !activeImages.includes(img)
+        );
+
+    if(available.length === 0) {
+        return null;
+    }
+
+    return available[
+        Math.floor(
+            Math.random() * available.length
+        )
+    ];
+}
+
+// Spiel starten
+function initializeGame() {
+
+    activeImages = [];
+
+    for(let i = 0; i < 5; i++) {
+
+        const image = getRandomImage();
+
+        if(image) {
+            activeImages.push(image);
+        }
+    }
+
+    render();
+}
+
+// Aufgabe erledigt
+function completeTask(index) {
+
+    updateScore(10);
+
+    activeImages.splice(index,1);
+
+    const nextImage =
+        getRandomImage();
+
+    if(nextImage) {
+        activeImages.push(nextImage);
+    }
+
+    render();
+}
+
+// Aufgaben anzeigen
+function render() {
+
+    const gameArea =
+        document.getElementById("gameArea");
+
+    gameArea.innerHTML = "";
+
+    activeImages.forEach((image,index) => {
+
+        const card =
+            document.createElement("div");
+
+        card.classList.add("card");
+
+        card.innerHTML = `
+            <img src="${image}" alt="Aufgabe">
+
+            <button onclick="completeTask(${index})">
+                ✅ Erledigt (+10 Punkte)
+            </button>
+        `;
+
+        gameArea.appendChild(card);
+
+    });
+}
+
+// Beim Laden Rangliste anzeigen
+updateLeaderboard();
+
+</script>
+
+</body>
+</html>
