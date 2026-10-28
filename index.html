@@ -252,12 +252,31 @@ h1, h2 {
     cursor: pointer;
     z-index: 1001;
 }
+
+#statusBanner {
+    display: none;
+    margin: 0 auto 18px;
+    max-width: 640px;
+    background: rgba(255, 244, 198, 0.9);
+    color: #7a4b00;
+    border: 1px solid rgba(217, 119, 6, 0.5);
+    border-radius: 12px;
+    padding: 10px 14px;
+    text-align: center;
+    font-weight: 600;
+}
+
+#statusBanner.visible {
+    display: block;
+}
 </style>
 </head>
 <body>
 
 <div id="app">
     <h1>🏰 RegensPurge</h1>
+
+    <div id="statusBanner"></div>
 
     <div class="topbar">
         <div id="playerArea">
@@ -294,7 +313,7 @@ h1, h2 {
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 const tasks = [
-    { image: "images/card-small(1).png", points: 5, customPoints: true },
+    { image: "images/card-small (1).png", points: 5, customPoints: true },
     { image: "images/card-small (2).png", points: 10, customPoints: true },
     { image: "images/card-small (3).png", points: 15, customPoints: true },
     { image: "images/card-small (4).png", points: 20, customPoints: true },
@@ -317,20 +336,46 @@ const firebaseConfig = {
     appId: "YOUR_APP_ID"
 };
 
-const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY" &&
+    firebaseConfig.databaseURL &&
+    firebaseConfig.databaseURL.includes("firebaseio.com");
+
 let db = null;
 let gameRef = null;
-
-if (isFirebaseConfigured) {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    gameRef = db.ref("jetlag-regenspurge");
-}
-
 let players = {};
 let currentPlayer = "";
 let activeImages = [];
 let animationIndex = null;
+
+function showStatus(message) {
+    const banner = document.getElementById("statusBanner");
+    banner.textContent = message;
+    banner.classList.add("visible");
+}
+
+function hideStatus() {
+    const banner = document.getElementById("statusBanner");
+    banner.classList.remove("visible");
+    banner.textContent = "";
+}
+
+function initFirebase() {
+    if (!isFirebaseConfigured) {
+        showStatus("Lokaler Modus aktiv: Für echte Geräte-übergreifende Synchronisierung bitte deine Firebase-Daten in firebaseConfig eintragen.");
+        return false;
+    }
+
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        gameRef = db.ref("jetlag-regenspurge");
+        return true;
+    } catch (error) {
+        console.error("Firebase init error:", error);
+        showStatus("Firebase konnte nicht initialisiert werden. Bitte Firebase-Konfiguration prüfen.");
+        return false;
+    }
+}
 
 function getLocalState() {
     try {
@@ -552,6 +597,11 @@ function render() {
 
         gameArea.appendChild(card);
     });
+}
+
+const firebaseReady = initFirebase();
+if (firebaseReady) {
+    hideStatus();
 }
 
 initializeSharedState();
