@@ -327,14 +327,13 @@ const tasks = [
 ];
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
+    apiKey: "YOUR_API_KEY",
     authDomain: "regenspurge.firebaseapp.com",
     databaseURL: "https://regenspurge-default-rtdb.firebaseio.com",
     projectId: "regenspurge",
-    storageBucket: "regenspurge.firebasestorage.app",
-    messagingSenderId: "706439523349",
-    appId: "1:706439523349:web:0db0ac82a9241ee184321c",
-    measurementId: "G-K758M4BMPZ"
+    storageBucket: "regenspurge.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
 const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY" &&
@@ -346,6 +345,7 @@ let gameRef = null;
 let players = {};
 let currentPlayer = "";
 let activeImages = [];
+let completedTaskImages = [];
 let animationIndex = null;
 
 function showStatus(message) {
@@ -387,12 +387,12 @@ function getLocalState() {
 }
 
 function saveLocalState() {
-    localStorage.setItem("jetlag-regenspurge", JSON.stringify({ players, activeImages }));
+    localStorage.setItem("jetlag-regenspurge", JSON.stringify({ players, activeImages, completedTaskImages }));
 }
 
 function persistState() {
     if (gameRef) {
-        gameRef.set({ players, activeImages });
+        gameRef.set({ players, activeImages, completedTaskImages });
         return;
     }
     saveLocalState();
@@ -404,6 +404,7 @@ function initializeSharedState() {
             const data = snapshot.val() || {};
             players = data.players || {};
             activeImages = data.activeImages || [];
+            completedTaskImages = data.completedTaskImages || [];
 
             if (activeImages.length === 0) {
                 initializeGame();
@@ -420,6 +421,7 @@ function initializeSharedState() {
     const saved = getLocalState();
     players = saved.players || {};
     activeImages = saved.activeImages || [];
+    completedTaskImages = saved.completedTaskImages || [];
 
     if (activeImages.length === 0) {
         initializeGame();
@@ -505,13 +507,18 @@ function resetScore() {
 }
 
 function getRandomTask() {
-    const available = tasks.filter(task => !activeImages.some(active => active.image === task.image));
+    const available = tasks.filter(task =>
+        !activeImages.some(active => active.image === task.image) &&
+        !completedTaskImages.includes(task.image)
+    );
+
     if (available.length === 0) return null;
     return available[Math.floor(Math.random() * available.length)];
 }
 
 function initializeGame() {
     activeImages = [];
+    completedTaskImages = [];
 
     for (let i = 0; i < 3; i++) {
         const task = getRandomTask();
@@ -558,6 +565,10 @@ function completeTask(index) {
 
     const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
     if (points === null) return;
+
+    if (!completedTaskImages.includes(task.image)) {
+        completedTaskImages.push(task.image);
+    }
 
     animationIndex = index;
     updateScore(points);
