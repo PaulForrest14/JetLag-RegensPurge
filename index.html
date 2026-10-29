@@ -205,14 +205,8 @@ h1, h2 { text-align: center; margin: 0; }
 }
 
 @keyframes cardSlideIn {
-    0% {
-        opacity: 0;
-        transform: translateY(18px) scale(0.97);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    0% { opacity: 0; transform: translateY(18px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 #leaderboard {
@@ -591,14 +585,7 @@ function persistRoomState() {
     });
 }
 
-function getRandomTask() {
-    const available = tasks.filter(task =>
-        !activeImages.some(active => active.image === task.image) &&
-        !completedTaskImages.includes(task.image)
-    );
-
-    if (available.length === 0) return null;
-    const task = available[Math.floor(Math.random() * available.length)];
+function createTaskEntry(task) {
     return {
         ...task,
         id: `task-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -607,13 +594,34 @@ function getRandomTask() {
     };
 }
 
+function ensureTaskDeck() {
+    const targetCount = 3;
+    const activeSet = new Set(activeImages.map(task => task.image));
+    const available = tasks.filter(task =>
+        !activeSet.has(task.image) && !completedTaskImages.includes(task.image)
+    );
+
+    while (activeImages.length < targetCount && available.length > 0) {
+        const randomIndex = Math.floor(Math.random() * available.length);
+        const task = available.splice(randomIndex, 1)[0];
+        activeImages.push(createTaskEntry(task));
+    }
+}
+
+function getRandomTask() {
+    const activeSet = new Set(activeImages.map(task => task.image));
+    const available = tasks.filter(task =>
+        !activeSet.has(task.image) && !completedTaskImages.includes(task.image)
+    );
+
+    if (available.length === 0) return null;
+    return createTaskEntry(available[Math.floor(Math.random() * available.length)]);
+}
+
 function generateRound() {
     activeImages = [];
     completedTaskImages = [];
-    for (let i = 0; i < 3; i++) {
-        const task = getRandomTask();
-        if (task) activeImages.push(task);
-    }
+    ensureTaskDeck();
     persistLocalState();
     if (gameRef) {
         persistRoomState();
@@ -734,6 +742,7 @@ function completeTask(task) {
 
     activeImages = activeImages.filter(item => item.image !== task.image);
     completedTaskImages.push(task.image);
+    ensureTaskDeck();
 
     updateScore(task.points);
     triggerScreenFlash(task.points);
@@ -795,10 +804,10 @@ function refreshExpiredTasks() {
     activeImages = activeImages.filter(task => !task.expiresAt || task.expiresAt > now);
     expired.forEach(task => {
         if (!completedTaskImages.includes(task.image)) {
-            const replacement = getRandomTask();
-            if (replacement) activeImages.push(replacement);
+            completedTaskImages.push(task.image);
         }
     });
+    ensureTaskDeck();
     persistLocalState();
     if (gameRef) persistRoomState();
     renderBoard();
@@ -826,6 +835,7 @@ function connectToRoom() {
         const tasksList = Object.values(tasksMap);
         activeImages = tasksList.filter(task => !task.completedBy);
         completedTaskImages = tasksList.filter(task => task.completedBy).map(task => task.image);
+        ensureTaskDeck();
 
         if (!Object.prototype.hasOwnProperty.call(roomPlayers, playerId)) {
             roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
@@ -871,8 +881,10 @@ function joinOrCreateRoom() {
         showStatus("Firebase nicht aktiv. Spiel läuft lokal.");
         if (activeImages.length === 0 && completedTaskImages.length === 0) {
             generateRound();
+        } else {
+            ensureTaskDeck();
+            renderBoard();
         }
-        renderBoard();
     }
 }
 
@@ -903,6 +915,7 @@ function init() {
     if (activeImages.length === 0 && completedTaskImages.length === 0) {
         generateRound();
     } else {
+        ensureTaskDeck();
         renderBoard();
     }
 
