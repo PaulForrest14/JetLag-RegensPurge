@@ -44,7 +44,7 @@
     }
 
     #playerArea {
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.92);
       padding: 18px 20px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.18);
@@ -65,7 +65,8 @@
     }
 
     #playerArea button,
-    #scoreBoard button {
+    #scoreBoard button,
+    .action-btn {
       border: none;
       border-radius: 10px;
       padding: 11px 18px;
@@ -75,16 +76,24 @@
       transition: transform 0.15s ease, filter 0.15s ease;
     }
 
-    #playerArea button {
+    #playerArea button,
+    .primary-btn {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: white;
     }
 
+    .secondary-btn {
+      background: linear-gradient(135deg, #64748b, #475569);
+      color: white;
+    }
+
     #playerArea button:hover,
-    #scoreBoard button:hover { filter: brightness(1.05); }
+    #scoreBoard button:hover,
+    .action-btn:hover { filter: brightness(1.05); }
 
     #playerArea button:active,
-    #scoreBoard button:active { transform: translateY(1px); }
+    #scoreBoard button:active,
+    .action-btn:active { transform: translateY(1px); }
 
     #scoreBoard {
       background: rgba(255,255,255,0.92);
@@ -106,6 +115,14 @@
       color: white;
       width: fit-content;
       margin: 8px auto 0;
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
     }
 
     .round-summary {
@@ -353,9 +370,24 @@
 
     <div class="topbar">
       <div id="playerArea">
-        <input type="text" id="playerName" placeholder="Spielername" />
-        <input type="text" id="roomCode" placeholder="Raumcode" />
-        <button id="joinRoomBtn">Raum betreten</button>
+        <div style="display:grid; gap:8px; justify-items:center; text-align:center; width:100%;">
+          <div style="font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#475569;">
+            1. Spielername
+          </div>
+          <input type="text" id="playerName" placeholder="Spielername" />
+        </div>
+
+        <div style="display:grid; gap:8px; justify-items:center; text-align:center; width:100%;">
+          <div style="font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#475569;">
+            2. Raumcode
+          </div>
+          <input type="text" id="roomCode" placeholder="z.B. ROOM-ABCD12" />
+        </div>
+
+        <div class="actions-row">
+          <button id="createRoomBtn" class="primary-btn">Neuen Raum erstellen</button>
+          <button id="joinRoomBtn" class="secondary-btn">Raum beitreten</button>
+        </div>
       </div>
     </div>
 
@@ -401,20 +433,19 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script>
     const tasks = [
-      { image: "images/card-small(1).png", points: 5, customPoints: true },
-      { image: "images/card-small (2).png", points: 10, customPoints: true },
-      { image: "images/card-small (3).png", points: 15, customPoints: true },
-      { image: "images/card-small (4).png", points: 20, customPoints: true },
-      { image: "images/card-small (5).png", points: 25, customPoints: true },
-      { image: "images/card-small (6).png", points: 30 },
-      { image: "images/card-small (7).png", points: 35 },
-      { image: "images/card-small (8).png", points: 40 },
-      { image: "images/card-small (9).png", points: 45 },
-      { image: "images/card-small (10).png", points: 50 },
-      { image: "images/card-small (11).png", points: 55 }
+      { image: "images/card-small(1).png", points: 5 },
+      { image: "images/card-small(2).png", points: 10 },
+      { image: "images/card-small(3).png", points: 15 },
+      { image: "images/card-small(4).png", points: 20 },
+      { image: "images/card-small(5).png", points: 25 },
+      { image: "images/card-small(6).png", points: 30 },
+      { image: "images/card-small(7).png", points: 35 },
+      { image: "images/card-small(8).png", points: 40 },
+      { image: "images/card-small(9).png", points: 45 },
+      { image: "images/card-small(10).png", points: 50 },
+      { image: "images/card-small(11).png", points: 55 }
     ];
 
-    const taskTimeOptions = [20];
     const firebaseConfig = {
       apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
       authDomain: "regenspurge.firebaseapp.com",
@@ -561,29 +592,6 @@
       }
     }
 
-    function buildTaskMap(taskList) {
-      const result = {};
-      taskList.forEach((task, index) => {
-        const id = task.id || `task-${index}`;
-        result[id] = {
-          id,
-          image: task.image,
-          points: Number(task.points || 0),
-          customPoints: !!task.customPoints,
-          timeLimit: task.timeLimit || 20,
-          expiresAt: task.expiresAt || Date.now() + 20 * 1000,
-          completedBy: task.completedBy || null,
-          completedAt: task.completedAt || null
-        };
-      });
-      return result;
-    }
-
-    function persistLocalState() {
-      saveLocalState();
-      savePlayerMeta();
-    }
-
     function makeTaskEntry(task) {
       return {
         ...task,
@@ -597,6 +605,13 @@
 
     function createRoomDeck() {
       return shuffleArray(tasks).slice(0, 3).map((task) => makeTaskEntry(task));
+    }
+
+    function saveLocalStateAndRender() {
+      saveLocalState();
+      renderBoard();
+      updatePlayerDisplay();
+      updateLeaderboard();
     }
 
     function generateRoundForRoom() {
@@ -618,10 +633,7 @@
         };
       });
 
-      gameRef.set({
-        players: roomPlayers,
-        tasks: roomTasks
-      });
+      gameRef.set({ players: roomPlayers, tasks: roomTasks });
     }
 
     function generateRound() {
@@ -634,8 +646,7 @@
       }
 
       activeImages = createRoomDeck();
-      persistLocalState();
-      renderBoard();
+      saveLocalStateAndRender();
     }
 
     function startNewRound() {
@@ -673,7 +684,7 @@
       }
       players[currentPlayer].score = (players[currentPlayer].score || 0) + points;
       players[currentPlayer].highscore = Math.max(players[currentPlayer].highscore || 0, players[currentPlayer].score);
-      persistLocalState();
+      saveLocalState();
       updatePlayerDisplay();
       updateLeaderboard();
     }
@@ -694,7 +705,7 @@
         players[currentPlayer] = { score: 0, highscore: 0 };
       }
       players[currentPlayer].score = 0;
-      persistLocalState();
+      saveLocalState();
       updatePlayerDisplay();
       updateLeaderboard();
     }
@@ -786,7 +797,7 @@
       updateScore(task.points);
       triggerScreenFlash(task.points);
       spawnConfetti();
-      persistLocalState();
+      saveLocalState();
       renderBoard();
     }
 
@@ -874,7 +885,7 @@
         }
       });
       ensureTaskDeck();
-      persistLocalState();
+      saveLocalState();
       renderBoard();
     }
 
@@ -886,7 +897,6 @@
     }
 
     function connectToRoom() {
-      if (!roomId) return;
       if (!db && !initFirebase()) {
         showStatus("Firebase ist nicht aktiv. Das Spiel läuft lokal weiter.");
         return;
@@ -926,6 +936,32 @@
       updateLeaderboard();
     }
 
+    function createRoom() {
+      const nameInput = document.getElementById("playerName");
+      if (!nameInput) return;
+
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("Bitte Spielernamen eingeben.");
+        return;
+      }
+
+      currentPlayer = name;
+      roomId = normalizeRoomId(generateRoomId());
+      document.getElementById("roomCode").value = roomId;
+      savePlayerMeta();
+      showStatus(`Raum erstellt: ${roomId}. Teile den Code mit dem zweiten Spieler.`);
+
+      if (window.firebase && firebaseConfig.databaseURL) {
+        initFirebase();
+        connectToRoom();
+      } else {
+        if (activeImages.length === 0 && completedTaskImages.length === 0) {
+          generateRound();
+        }
+      }
+    }
+
     function joinOrCreateRoom() {
       const nameInput = document.getElementById("playerName");
       const roomInput = document.getElementById("roomCode");
@@ -941,6 +977,7 @@
       roomId = normalizeRoomId(roomInput.value);
       roomInput.value = roomId;
       savePlayerMeta();
+      showStatus(`Raum wird betreten: ${roomId}`);
 
       if (window.firebase && firebaseConfig.databaseURL) {
         initFirebase();
@@ -962,6 +999,7 @@
       if (playerName) playerName.value = currentPlayer;
       if (roomCode) roomCode.value = roomId;
 
+      document.getElementById("createRoomBtn").addEventListener("click", createRoom);
       document.getElementById("joinRoomBtn").addEventListener("click", joinOrCreateRoom);
       document.getElementById("resetScoreBtn").addEventListener("click", resetScore);
       document.getElementById("newRoundBtn").addEventListener("click", startNewRound);
@@ -973,11 +1011,16 @@
     function init() {
       loadLocalState();
       bindUI();
+
       if (!currentPlayer) {
         const savedName = localStorage.getItem("jetlag-player-name");
         if (savedName) currentPlayer = savedName;
         const nameInput = document.getElementById("playerName");
         if (nameInput) nameInput.value = currentPlayer;
+      }
+
+      if (roomId) {
+        document.getElementById("roomCode").value = roomId;
       }
 
       if (activeImages.length === 0 && completedTaskImages.length === 0) {
