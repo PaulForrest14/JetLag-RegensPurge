@@ -412,6 +412,8 @@ h1, h2 {
     <div class="topbar">
         <div id="playerArea">
             <input type="text" id="playerName" placeholder="Spielername">
+            <input type="text" id="roomCode" placeholder="Raumcode">
+            <button onclick="joinOrCreateRoom()">Raum betreten</button>
         </div>
     </div>
 
@@ -624,7 +626,24 @@ function buildTaskMap(taskList) {
 
 function savePlayerInfoLocally() {
     localStorage.setItem("jetlag-player-id", playerId);
+    localStorage.setItem("jetlag-player-name", currentPlayer);
     if (roomId) localStorage.setItem("jetlag-room-id", roomId);
+}
+
+function loadCurrentPlayer() {
+    const savedName = localStorage.getItem("jetlag-player-name");
+    if (savedName) {
+        currentPlayer = savedName;
+        const nameInput = document.getElementById("playerName");
+        if (nameInput) nameInput.value = savedName;
+    }
+
+    const savedRoom = localStorage.getItem("jetlag-room-id");
+    if (savedRoom) {
+        roomId = savedRoom;
+        const roomInput = document.getElementById("roomCode");
+        if (roomInput) roomInput.value = savedRoom;
+    }
 }
 
 function joinOrCreateRoom() {
@@ -723,6 +742,10 @@ function initializeSharedState() {
     activeImages = saved.activeImages || [];
     completedTaskImages = saved.completedTaskImages || [];
 
+    if (currentPlayer && !players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
+    }
+
     if (roomId && db) {
         gameRef = db.ref(`rooms/${roomId}`);
         connectToRoom();
@@ -789,10 +812,18 @@ function updatePlayerDisplay() {
 
 function updateLeaderboard() {
     const list = document.getElementById("leaderboardList");
+    if (!list) return;
     list.innerHTML = "";
 
     const source = roomId ? Object.entries(roomPlayers) : Object.entries(players);
-    const ranking = source.sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
+    const ranking = [...source].sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
+
+    if (ranking.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Noch keine Punkte";
+        list.appendChild(li);
+        return;
+    }
 
     ranking.forEach(([name, data]) => {
         const li = document.createElement("li");
@@ -1000,128 +1031,121 @@ function completeTask(index) {
     const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
     if (points === null) return;
 
-    if (roomId && gameRef) {
-        gameRef.child("tasks").once("value", (snapshot) => {
-            const tasksMap = snapshot.val() || {};
-            const taskId = Object.keys(tasksMap).find((key) => {
-                const value = tasksMap[key];
-                return value && value.image === task.image && !value.completedBy;
-            });
-
-            if (!taskId) return;
-
-            tasksMap[taskId].completedBy = playerId;
-            tasksMap[taskId].completedAt = Date.now();
-            tasksMap[taskId].points = points;
-            gameRef.child("tasks").set(tasksMap);
-        });
-    }
-
-    if (!roomId || !gameRef) {
-        if (!completedTaskImages.includes(task.image)) {
-            completedTaskImages.push(task.image);
-        }
-        activeImages.splice(index, 1);
-        const replacement = getRandomTask();
-        if (replacement) activeImages.push(replacement);
-        persistState();
+    const taskImage = task.image;
+    const card = document.querySelectorAll(".card")[index];
+    if (card) {
+        card.classList.add("task-completed");
     }
 
     updateScore(points);
+    completedTaskImages.push(taskImage);
+    activeImages.splice(index, 1);
     triggerScreenFlash(points);
     spawnConfetti();
-    animationIndex = index;
-    render();
 
-    const allDone = completedTaskImages.length >= tasks.length;
-    if (allDone) {
-        showStatus("Alle Aufgaben erledigt! Starte eine neue Runde.");
+    if (roomId && gameRef) {
+        const taskId = task.id || `task-${index}`;
+        gameRef.child("tasks").child(taskId).update({
+            completedBy: currentPlayer,
+            completedAt: Date.now(),
+            points: task.points,
+            customPoints: !!task.customPoints
+        });
     }
 
-    window.setTimeout(() => {
-        animationIndex = null;
-        render();
-    }, 700);
-}
+    if (activeImages.length < 3) {
+        const replacement = getRandomTask();
+        if (replacement) {
+            activeImages.push(replacement);
+        }
+    }
 
-function formatCountdown(totalSeconds) {
-    const safeSeconds = Math.max(0, totalSeconds);
-    const minutes = Math.floor(safeSeconds / 60);
-    const seconds = safeSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    render();
+    updateRoundSummary();
 }
 
 function render() {
     const gameArea = document.getElementById("gameArea");
-    gameArea.innerHTML = "";
-    updateRoundSummary();
+    if (!gameArea) return;
 
-    if (activeImages.length === 0) {
-        showStatus("Alle Aufgaben erledigt! Starte eine neue Runde.");
-    }
+    gameArea.innerHTML = "";
 
     activeImages.forEach((task, index) => {
         const card = document.createElement("div");
         card.className = "card";
-        if (animationIndex === index) {
-            card.classList.add("task-completed");
+
+        const img = document.createElement("img");
+        img.src = task.image;
+        img.alt = "Aufgabe";
+        img.addEventListener("click", () => openImageModal(task.image));
+
+        const timer = document.createElement("div");
+        timer.className = "task-timer";
+        if (task.expiresAt) {
+            const remaining = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
+            timer.textContent = `${remaining}s`;
+            if (remaining <= 5) timer.classList.add("warning");
+        } else {
+            timer.textContent = "20s";
         }
 
-        const remainingSeconds = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
-        const timerClass = remainingSeconds <= 10 ? "task-timer warning" : "task-timer";
-        const buttonText = task.customPoints ? `Erledigt (${task.points} Pkt.)` : `${task.points} Punkte`;
+        const button = document.createElement("button");
+        button.textContent = task.customPoints ? `Erledigt (${task.points} Punkte)` : `Erledigt (+${task.points})`;
+        button.addEventListener("click", () => completeTask(index));
 
-        card.innerHTML = `
-            <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
-            <div class="${timerClass}">⏱️ ${formatCountdown(remainingSeconds)}</div>
-            <button onclick="completeTask(${index})">${buttonText}</button>
-        `;
-
+        card.appendChild(img);
+        card.appendChild(timer);
+        card.appendChild(button);
         gameArea.appendChild(card);
     });
+
+    updateRoundSummary();
+    updateLeaderboard();
 }
 
-window.addEventListener("beforeunload", () => {
-    if (roomId && gameRef && currentPlayer) {
-        gameRef.child("players").child(playerId).update({ connected: false });
+function initializeApp() {
+    loadCurrentPlayer();
+    const saved = getLocalState();
+    players = saved.players || {};
+
+    if (currentPlayer && !players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
     }
-});
 
-const existingName = localStorage.getItem("jetlag-player-name");
-if (existingName) {
-    document.getElementById("playerName").value = existingName;
-    currentPlayer = existingName;
+    updatePlayerDisplay();
+    updateLeaderboard();
+    if (!roomId) {
+        if (activeImages.length === 0 && completedTaskImages.length === 0) {
+            initializeGame();
+        } else {
+            render();
+        }
+    }
+    if (roomId && db) {
+        gameRef = db.ref(`rooms/${roomId}`);
+        connectToRoom();
+    }
 }
 
-if (roomId) {
-    document.getElementById("roomCode").value = roomId;
-}
-
-if (window.firebase) {
-    initFirebase();
-}
-
-initializeSharedState();
-startTaskTimerLoop();
-updateLeaderboard();
-
-window.joinOrCreateRoom = joinOrCreateRoom;
-window.resetScore = resetScore;
-window.resetGameBoard = resetGameBoard;
-window.openImageModal = openImageModal;
-window.closeImageModal = closeImageModal;
-window.completeTask = completeTask;
-
-const savedName = document.getElementById("playerName").value.trim();
-if (savedName) {
-    localStorage.setItem("jetlag-player-name", savedName);
-    currentPlayer = savedName;
-}
-
-window.addEventListener("beforeunload", () => {
-    const inputName = document.getElementById("playerName").value.trim();
-    if (inputName) {
-        localStorage.setItem("jetlag-player-name", inputName);
+window.addEventListener("DOMContentLoaded", () => {
+    if (!document.getElementById("playerName")) return;
+    loadCurrentPlayer();
+    const saved = getLocalState();
+    players = saved.players || {};
+    if (currentPlayer && !players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
+    }
+    updatePlayerDisplay();
+    updateLeaderboard();
+    if (!roomId) {
+        initializeGame();
+    }
+    if (db === null && isFirebaseConfigured) {
+        initFirebase();
+    }
+    if (roomId && db) {
+        gameRef = db.ref(`rooms/${roomId}`);
+        connectToRoom();
     }
 });
 </script>
