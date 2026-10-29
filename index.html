@@ -1,713 +1,645 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aufgaben-Spiel</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RegensPurge</title>
 
-<style>
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; min-height: 100%; }
-body {
-    font-family: Arial, sans-serif;
-    min-height: 100vh;
-    color: #1f2937;
-    background-image: linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      color: #1f2937;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
         url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
 
-h1, h2 { text-align: center; margin: 0; }
-#app {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px 18px 40px;
-}
+    h1, h2 { text-align: center; margin: 0; }
 
-.topbar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
+    #app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 18px 40px;
+    }
 
-#playerArea {
-    background: rgba(255,255,255,0.9);
-    padding: 18px 20px;
-    border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    align-items: center;
-}
+    .topbar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
 
-#playerArea input {
-    padding: 11px 14px;
-    font-size: 16px;
-    border-radius: 10px;
-    border: 1px solid #c7d2fe;
-    min-width: 220px;
-    outline: none;
-}
+    #playerArea {
+      background: rgba(255,255,255,0.9);
+      padding: 18px 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
 
-#playerArea button,
-#scoreBoard button {
-    border: none;
-    border-radius: 10px;
-    padding: 11px 18px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.15s ease, filter 0.15s ease;
-}
+    #playerArea input {
+      padding: 11px 14px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: 1px solid #c7d2fe;
+      min-width: 220px;
+      outline: none;
+    }
 
-#playerArea button {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    color: white;
-}
+    #playerArea button,
+    #scoreBoard button {
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
 
-#playerArea button:hover,
-#scoreBoard button:hover { filter: brightness(1.05); }
-#playerArea button:active,
-#scoreBoard button:active { transform: translateY(1px); }
+    #playerArea button {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+    }
 
-#scoreBoard {
-    background: rgba(255,255,255,0.92);
-    border-radius: 18px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-    padding: 18px 22px;
-    width: min(540px, 100%);
-    margin: 0 auto 14px;
-    display: grid;
-    gap: 10px;
-    text-align: center;
-}
+    #playerArea button:hover,
+    #scoreBoard button:hover { filter: brightness(1.05); }
 
-#scoreBoard .stat { font-size: 18px; font-weight: 600; }
-.score { font-size: 26px; font-weight: 700; color: #0f172a; }
-#scoreBoard button {
-    background: linear-gradient(135deg, #64748b, #475569);
-    color: white;
-    width: fit-content;
-    margin: 8px auto 0;
-}
+    #playerArea button:active,
+    #scoreBoard button:active { transform: translateY(1px); }
 
-.round-summary {
-    width: min(540px, 100%);
-    margin: 0 auto 22px;
-    padding: 12px 16px 14px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.9);
-    border: 1px solid rgba(148, 163, 184, 0.5);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-}
+    #scoreBoard {
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+      padding: 18px 22px;
+      width: min(540px, 100%);
+      margin: 0 auto 14px;
+      display: grid;
+      gap: 10px;
+      text-align: center;
+    }
 
-.round-summary .label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 700;
-    color: #0f172a;
-    text-align: center;
-}
+    #scoreBoard .stat { font-size: 18px; font-weight: 600; }
+    .score { font-size: 26px; font-weight: 700; color: #0f172a; }
 
-.progress-track {
-    width: 100%;
-    height: 16px;
-    border-radius: 999px;
-    background: rgba(148, 163, 184, 0.25);
-    overflow: hidden;
-    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
-}
+    #scoreBoard button {
+      background: linear-gradient(135deg, #64748b, #475569);
+      color: white;
+      width: fit-content;
+      margin: 8px auto 0;
+    }
 
-.progress-fill {
-    display: block;
-    height: 100%;
-    width: 0%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
-    transition: width 0.35s ease;
-}
+    .round-summary {
+      width: min(540px, 100%);
+      margin: 0 auto 22px;
+      padding: 12px 16px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
 
-.board-shell {
-    background: rgba(15, 23, 42, 0.7);
-    border-radius: 22px;
-    padding: 18px;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
-}
+    .round-summary .label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #0f172a;
+      text-align: center;
+    }
 
-#gameArea {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    align-items: stretch;
-}
+    .progress-track {
+      width: 100%;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.25);
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+    }
 
-.card {
-    background: linear-gradient(180deg, #ffffff, #f8fafc);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
-    width: min(220px, 100%);
-    margin: 0 auto;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    opacity: 0;
-    transform: translateY(18px) scale(0.97);
-    animation: cardSlideIn 0.38s ease forwards;
-}
+    .progress-fill {
+      display: block;
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+      transition: width 0.35s ease;
+    }
 
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 22px rgba(15, 23, 42, 0.26);
-}
+    .board-shell {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
+    }
 
-.card img {
-    display: block;
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    cursor: pointer;
-}
+    #gameArea {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      align-items: stretch;
+    }
 
-.task-timer {
-    padding: 8px 10px 0;
-    text-align: center;
-    font-weight: 700;
-    font-size: 14px;
-    color: #0f172a;
-}
+    .card {
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2);
+      width: min(220px, 100%);
+      margin: 0 auto;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      opacity: 0;
+      transform: translateY(18px) scale(0.97);
+      animation: cardSlideIn 0.38s ease forwards;
+    }
 
-.task-timer.warning { color: #dc2626; }
-.card button {
-    width: 100%;
-    border: none;
-    padding: 14px 10px;
-    font-size: 17px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    cursor: pointer;
-}
-.card button:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
-.card.task-completed { animation: pulseDone 0.7s ease; }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 22px rgba(15, 23, 42, 0.26);
+    }
 
-@keyframes pulseDone {
-    0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
-    30% { transform: scale(1.03); box-shadow: 0 0 20px rgba(34,197,94,0.7); }
-    100% { transform: scale(1); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2); }
-}
+    .card img {
+      display: block;
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      cursor: pointer;
+    }
 
-@keyframes cardSlideIn {
-    0% { opacity: 0; transform: translateY(18px) scale(0.97); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-}
+    .task-timer {
+      padding: 8px 10px 0;
+      text-align: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #0f172a;
+    }
 
-#leaderboard {
-    background: rgba(255,255,255,0.94);
-    border-radius: 18px;
-    padding: 18px 20px 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-    width: min(540px, 100%);
-    margin: 24px auto 0;
-}
+    .task-timer.warning { color: #dc2626; }
 
-#leaderboard ul { list-style: none; padding: 0; margin: 14px 0 0; }
-#leaderboard li {
-    padding: 10px 6px;
-    border-bottom: 1px solid #e2e8f0;
-    font-weight: bold;
-}
-#leaderboard li:last-child { border-bottom: none; }
+    .card button {
+      width: 100%;
+      border: none;
+      padding: 14px 10px;
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      cursor: pointer;
+    }
 
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: rgba(15, 23, 42, 0.82);
-    justify-content: center;
-    align-items: center;
-    padding: 18px;
-}
-.modal.show { display: flex; }
-.modal-content {
-    position: relative;
-    background: rgba(255,255,255,0.97);
-    border-radius: 18px;
-    padding: 12px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.38);
-    max-width: 90vw;
-    max-height: 88vh;
-}
-.modal-content img {
-    display: block;
-    max-width: 90vw;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: 10px;
-}
-.close-btn {
-    position: absolute;
-    top: 14px;
-    right: 18px;
-    color: white;
-    font-size: 42px;
-    font-weight: bold;
-    line-height: 1;
-    cursor: pointer;
-    z-index: 1001;
-}
+    .card button:hover {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+    }
 
-#statusBanner {
-    display: none;
-    margin: 0 auto 18px;
-    max-width: 640px;
-    background: rgba(255, 244, 198, 0.9);
-    color: #7a4b00;
-    border: 1px solid rgba(217, 119, 6, 0.5);
-    border-radius: 12px;
-    padding: 10px 14px;
-    text-align: center;
-    font-weight: 600;
-}
-#statusBanner.visible { display: block; }
+    .card.task-completed { animation: pulseDone 0.7s ease; }
 
-#screenFlash {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    pointer-events: none;
-    opacity: 0;
-    background: radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(34,197,94,0.28) 24%, rgba(0,0,0,0.34) 100%);
-}
-#screenFlash.show { animation: screenFlash 0.8s ease forwards; }
-#screenFlashText {
-    padding: 18px 26px;
-    border-radius: 18px;
-    background: rgba(34, 197, 94, 0.2);
-    border: 2px solid rgba(255,255,255,0.55);
-    box-shadow: 0 18px 40px rgba(0,0,0,0.28);
-    font-size: clamp(2rem, 6vw, 4rem);
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: white;
-    text-shadow: 0 8px 24px rgba(0,0,0,0.45);
-}
+    @keyframes pulseDone {
+      0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
+      30% { transform: scale(1.03); box-shadow: 0 0 20px rgba(34,197,94,0.7); }
+      100% { transform: scale(1); box-shadow: 0 8px 18px rgba(15, 23, 42, 0.2); }
+    }
 
-#confettiLayer {
-    position: fixed;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-    z-index: 2500;
-}
-.confetti-piece {
-    position: absolute;
-    top: -10vh;
-    width: 10px;
-    height: 16px;
-    border-radius: 2px;
-    opacity: 0.95;
-    animation: confettiFall 1.6s ease-in forwards;
-}
+    @keyframes cardSlideIn {
+      0% { opacity: 0; transform: translateY(18px) scale(0.97); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
-@keyframes screenFlash {
-    0% { opacity: 0; transform: scale(0.9); }
-    12% { opacity: 1; transform: scale(1); }
-    45% { opacity: 1; transform: scale(1.03); }
-    100% { opacity: 0; transform: scale(1.1); }
-}
+    #leaderboard {
+      background: rgba(255,255,255,0.94);
+      border-radius: 18px;
+      padding: 18px 20px 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+      width: min(540px, 100%);
+      margin: 24px auto 0;
+    }
 
-@keyframes confettiFall {
-    0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
-    100% { transform: translate3d(var(--dx), 115vh, 0) rotate(720deg); opacity: 0; }
-}
-</style>
+    #leaderboard ul {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0 0;
+    }
+
+    #leaderboard li {
+      padding: 10px 6px;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: bold;
+    }
+
+    #leaderboard li:last-child { border-bottom: none; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(15, 23, 42, 0.82);
+      justify-content: center;
+      align-items: center;
+      padding: 18px;
+    }
+
+    .modal.show { display: flex; }
+
+    .modal-content {
+      position: relative;
+      background: rgba(255,255,255,0.97);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.38);
+      max-width: 90vw;
+      max-height: 88vh;
+    }
+
+    .modal-content img {
+      display: block;
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      color: white;
+      font-size: 42px;
+      font-weight: bold;
+      line-height: 1;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    #statusBanner {
+      display: none;
+      margin: 0 auto 18px;
+      max-width: 640px;
+      background: rgba(255, 244, 198, 0.9);
+      color: #7a4b00;
+      border: 1px solid rgba(217, 119, 6, 0.5);
+      border-radius: 12px;
+      padding: 10px 14px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    #statusBanner.visible { display: block; }
+
+    #screenFlash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(34,197,94,0.28) 24%, rgba(0,0,0,0.34) 100%);
+    }
+
+    #screenFlash.show { animation: screenFlash 0.8s ease forwards; }
+
+    #screenFlashText {
+      padding: 18px 26px;
+      border-radius: 18px;
+      background: rgba(34, 197, 94, 0.2);
+      border: 2px solid rgba(255,255,255,0.55);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: white;
+      text-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    }
+
+    #confettiLayer {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 2500;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      top: -10vh;
+      width: 10px;
+      height: 16px;
+      border-radius: 2px;
+      opacity: 0.95;
+      animation: confettiFall 1.6s ease-in forwards;
+    }
+
+    @keyframes screenFlash {
+      0% { opacity: 0; transform: scale(0.9); }
+      12% { opacity: 1; transform: scale(1); }
+      45% { opacity: 1; transform: scale(1.03); }
+      100% { opacity: 0; transform: scale(1.1); }
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+      100% { transform: translate3d(var(--dx), 115vh, 0) rotate(720deg); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
-
-<div id="app">
+  <div id="app">
     <h1>🏰 RegensPurge</h1>
 
     <div id="statusBanner"></div>
 
     <div class="topbar">
-        <div id="playerArea">
-            <input type="text" id="playerName" placeholder="Spielername">
-            <input type="text" id="roomCode" placeholder="Raumcode">
-            <button id="joinRoomBtn">Raum betreten</button>
-        </div>
+      <div id="playerArea">
+        <input type="text" id="playerName" placeholder="Spielername" />
+        <input type="text" id="roomCode" placeholder="Raumcode" />
+        <button id="joinRoomBtn">Raum betreten</button>
+      </div>
     </div>
 
     <div id="scoreBoard">
-        <div class="stat">Spieler: <strong id="activePlayer">-</strong></div>
-        <div class="stat score">Punkte: <span id="score">0</span></div>
-        <div class="stat">Highscore: <span id="highscore">0</span></div>
-        <button id="resetScoreBtn">Punktestand zurücksetzen</button>
-        <button id="newRoundBtn">Neues Spiel starten</button>
+      <div class="stat">Spieler: <strong id="activePlayer">-</strong></div>
+      <div class="stat score">Punkte: <span id="score">0</span></div>
+      <div class="stat">Highscore: <span id="highscore">0</span></div>
+      <button id="resetScoreBtn">Punktestand zurücksetzen</button>
+      <button id="newRoundBtn">Neues Spiel starten</button>
     </div>
 
     <div id="roundSummary" class="round-summary">
-        <span class="label">Fortschritt</span>
-        <div class="progress-track" aria-label="Fortschritt der Runde">
-            <span id="progressFill" class="progress-fill"></span>
-        </div>
+      <span class="label">Fortschritt</span>
+      <div class="progress-track" aria-label="Fortschritt der Runde">
+        <span id="progressFill" class="progress-fill"></span>
+      </div>
     </div>
 
     <div class="board-shell">
-        <div id="gameArea"></div>
+      <div id="gameArea"></div>
     </div>
 
     <div id="leaderboard">
-        <h2>🏆 Bestenliste</h2>
-        <ul id="leaderboardList"></ul>
+      <h2>🏆 Bestenliste</h2>
+      <ul id="leaderboardList"></ul>
     </div>
-</div>
+  </div>
 
-<div id="screenFlash" aria-live="polite">
+  <div id="screenFlash" aria-live="polite">
     <div id="screenFlashText">Aufgabe erledigt!</div>
-</div>
+  </div>
 
-<div id="confettiLayer" aria-hidden="true"></div>
+  <div id="confettiLayer" aria-hidden="true"></div>
 
-<div id="imageModal" class="modal">
+  <div id="imageModal" class="modal">
     <span class="close-btn" id="closeModalBtn">&times;</span>
     <div class="modal-content">
-        <img id="modalImage" src="" alt="Vergrößerte Aufgabe">
+      <img id="modalImage" src="" alt="Vergrößerte Aufgabe" />
     </div>
-</div>
+  </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script>
-const tasks = [
-    { image: "images/card-small (1).png", points: 5, customPoints: true },
-    { image: "images/card-small (2).png", points: 10, customPoints: true },
-    { image: "images/card-small (3).png", points: 15, customPoints: true },
-    { image: "images/card-small (4).png", points: 20, customPoints: true },
-    { image: "images/card-small (5).png", points: 25, customPoints: true },
-    { image: "images/card-small (6).png", points: 30 },
-    { image: "images/card-small (7).png", points: 35 },
-    { image: "images/card-small (8).png", points: 40 },
-    { image: "images/card-small (9).png", points: 45 },
-    { image: "images/card-small (10).png", points: 50 },
-    { image: "images/card-small (11).png", points: 55 }
-];
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
-  authDomain: "regenspurge.firebaseapp.com",
-  databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "regenspurge",
-  storageBucket: "regenspurge.firebasestorage.app",
-  messagingSenderId: "706439523349",
-  appId: "1:706439523349:web:0db0ac82a9241ee184321c",
-  measurementId: "G-K758M4BMPZ"
-};
+  <script>
+    const tasks = [
+      { image: "images/card-small (1).png", points: 5 },
+      { image: "images/card-small (2).png", points: 10 },
+      { image: "images/card-small (3).png", points: 15 },
+      { image: "images/card-small (4).png", points: 20 },
+      { image: "images/card-small (5).png", points: 25 },
+      { image: "images/card-small (6).png", points: 30 },
+      { image: "images/card-small (7).png", points: 35 },
+      { image: "images/card-small (8).png", points: 40 },
+      { image: "images/card-small (9).png", points: 45 },
+      { image: "images/card-small (10).png", points: 50 },
+      { image: "images/card-small (11).png", points: 55 }
+    ];
 
-let db = null;
-let gameRef = null;
-let players = {};
-let roomPlayers = {};
-let activeImages = [];
-let completedTaskImages = [];
-let currentPlayer = localStorage.getItem("jetlag-player-name") || "";
-let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
-let roomId = localStorage.getItem("jetlag-room-id") || "";
-let timerLoop = null;
-let localMode = false;
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
+      authDomain: "regenspurge.firebaseapp.com",
+      databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app/",
+      projectId: "regenspurge",
+      storageBucket: "regenspurge.firebasestorage.app",
+      messagingSenderId: "706439523349",
+      appId: "1:706439523349:web:0db0ac82a9241ee184321c",
+      measurementId: "G-K758M4BMPZ"
+    };
 
-function generateRoomId() {
-    return `ROOM-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-}
+    let db = null;
+    let gameRef = null;
+    let roomPlayers = {};
+    let activeImages = [];
+    let completedTaskImages = [];
+    let currentMode = "local"; // "local" | "room"
+    let currentPlayer = localStorage.getItem("jetlag-player-name") || "";
+    let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
+    let roomId = localStorage.getItem("jetlag-room-id") || "";
+    let timerLoop = null;
 
-function normalizeRoomId(value) {
-    return (value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12) || generateRoomId();
-}
+    function generateRoomId() {
+      return `ROOM-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    }
 
-function showStatus(message) {
-    const banner = document.getElementById("statusBanner");
-    if (!banner) return;
-    banner.textContent = message;
-    banner.classList.add("visible");
-}
+    function normalizeRoomId(value) {
+      return (value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12) || generateRoomId();
+    }
 
-function hideStatus() {
-    const banner = document.getElementById("statusBanner");
-    if (!banner) return;
-    banner.classList.remove("visible");
-    banner.textContent = "";
-}
+    function showStatus(message) {
+      const banner = document.getElementById("statusBanner");
+      if (!banner) return;
+      banner.textContent = message;
+      banner.classList.add("visible");
+    }
 
-function shuffleArray(list) {
-    const copy = [...list];
-    for (let i = copy.length - 1; i > 0; i--) {
+    function hideStatus() {
+      const banner = document.getElementById("statusBanner");
+      if (!banner) return;
+      banner.classList.remove("visible");
+      banner.textContent = "";
+    }
+
+    function shuffleArray(list) {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
     }
-    return copy;
-}
 
-function loadLocalState() {
-    try {
-        const saved = JSON.parse(localStorage.getItem("jetlag-regenspurge") || "{}");
-        players = saved.players || {};
-        activeImages = saved.activeImages || [];
-        completedTaskImages = saved.completedTaskImages || [];
-    } catch {
-        players = {};
-        activeImages = [];
-        completedTaskImages = [];
+    function savePlayerMeta() {
+      localStorage.setItem("jetlag-player-id", playerId);
+      localStorage.setItem("jetlag-player-name", currentPlayer);
+      if (roomId) {
+        localStorage.setItem("jetlag-room-id", roomId);
+      }
     }
-}
 
-function saveLocalState() {
-    localStorage.setItem("jetlag-regenspurge", JSON.stringify({ players, activeImages, completedTaskImages }));
-}
+    function getPlayerLocalData() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("jetlag-regenspurge") || "{}");
+        return raw.players || {};
+      } catch {
+        return {};
+      }
+    }
 
-function savePlayerMeta() {
-    localStorage.setItem("jetlag-player-id", playerId);
-    localStorage.setItem("jetlag-player-name", currentPlayer);
-    if (roomId) localStorage.setItem("jetlag-room-id", roomId);
-}
+    function saveLocalState() {
+      const localState = {
+        players: getPlayerLocalData(),
+        activeImages,
+        completedTaskImages
+      };
+      localStorage.setItem("jetlag-regenspurge", JSON.stringify(localState));
+    }
 
-function getCurrentPlayerStats() {
-    if (roomId && roomPlayers[playerId]) {
+    function loadLocalState() {
+      try {
+        const raw = JSON.parse(localStorage.getItem("jetlag-regenspurge") || "{}");
+        return raw || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function getCurrentPlayerStats() {
+      if (currentMode === "room" && roomPlayers[playerId]) {
         return roomPlayers[playerId];
+      }
+
+      const localPlayers = getPlayerLocalData();
+      if (currentPlayer && localPlayers[currentPlayer]) {
+        return localPlayers[currentPlayer];
+      }
+
+      return { score: 0, highscore: 0 };
     }
-    if (currentPlayer && players[currentPlayer]) {
-        return players[currentPlayer];
+
+    function updatePlayerDisplay() {
+      const active = document.getElementById("activePlayer");
+      const scoreEl = document.getElementById("score");
+      const highscoreEl = document.getElementById("highscore");
+
+      if (!active || !scoreEl || !highscoreEl) return;
+
+      active.textContent = currentPlayer || "-";
+      const stats = getCurrentPlayerStats();
+      scoreEl.textContent = Number(stats.score || 0);
+      highscoreEl.textContent = Number(stats.highscore || 0);
     }
-    return { score: 0, highscore: 0 };
-}
 
-function updatePlayerDisplay() {
-    const active = document.getElementById("activePlayer");
-    const score = document.getElementById("score");
-    const highscore = document.getElementById("highscore");
+    function updateLeaderboard() {
+      const list = document.getElementById("leaderboardList");
+      if (!list) return;
 
-    if (!active || !score || !highscore) return;
-    active.textContent = currentPlayer || "-";
-    const stats = getCurrentPlayerStats();
-    score.textContent = Number(stats.score || 0);
-    highscore.textContent = Number(stats.highscore || 0);
-}
+      list.innerHTML = "";
 
-function updateLeaderboard() {
-    const list = document.getElementById("leaderboardList");
-    if (!list) return;
-    list.innerHTML = "";
+      const source = currentMode === "room" ? Object.entries(roomPlayers) : Object.entries(getPlayerLocalData());
+      const ranking = [...source].sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
 
-    const source = roomId ? Object.entries(roomPlayers) : Object.entries(players);
-    const ranking = [...source].sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
-
-    if (ranking.length === 0) {
+      if (ranking.length === 0) {
         const li = document.createElement("li");
         li.textContent = "Noch keine Punkte";
         list.appendChild(li);
         return;
-    }
+      }
 
-    ranking.forEach(([key, data]) => {
+      ranking.forEach(([key, data]) => {
         const li = document.createElement("li");
-        const label = roomId && key === playerId ? (currentPlayer || data.name || key) : (data.name || key);
+        const label = currentMode === "room" && key === playerId ? (currentPlayer || data.name || key) : (data.name || key);
         li.textContent = `${label}: ${data.highscore ?? 0} Punkte`;
         list.appendChild(li);
-    });
-}
+      });
+    }
 
-function updateRoundSummary() {
-    const fill = document.getElementById("progressFill");
-    const label = document.querySelector(".round-summary .label");
-    if (!fill || !label) return;
-    const total = tasks.length;
-    const done = completedTaskImages.length;
-    const percent = Math.min((done / total) * 100, 100);
-    fill.style.width = `${percent}%`;
-    label.textContent = `Fortschritt: ${done}/${total} erledigt`;
-}
+    function updateRoundSummary() {
+      const fill = document.getElementById("progressFill");
+      const label = document.querySelector(".round-summary .label");
+      if (!fill || !label) return;
 
-function initFirebase() {
-    if (!window.firebase || !firebaseConfig.databaseURL) return false;
-    try {
+      const total = tasks.length;
+      const done = completedTaskImages.length;
+      const percent = Math.min((done / total) * 100, 100);
+
+      fill.style.width = `${percent}%`;
+      label.textContent = `Fortschritt: ${done}/${total} erledigt`;
+    }
+
+    function initFirebase() {
+      if (!window.firebase || !firebaseConfig.databaseURL) return false;
+      try {
         if (!window.firebase.apps || window.firebase.apps.length === 0) {
-            window.firebase.initializeApp(firebaseConfig);
+          window.firebase.initializeApp(firebaseConfig);
         }
         db = window.firebase.database();
         return true;
-    } catch (error) {
+      } catch (error) {
         console.error("Firebase init error:", error);
         return false;
+      }
     }
-}
 
-function makeTaskEntry(task) {
-    return {
+    function createTaskEntry(task) {
+      return {
         ...task,
         id: `task-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-        timeLimit: 20,
         expiresAt: Date.now() + 20 * 1000,
         completedBy: null,
         completedAt: null
-    };
-}
-
-function createRoomDeck() {
-    return shuffleArray(tasks).slice(0, 3).map(task => makeTaskEntry(task));
-}
-
-function seedLocalRound() {
-    activeImages = createRoomDeck();
-    completedTaskImages = [];
-    persistLocalState();
-    renderBoard();
-}
-
-function generateRoundForRoom() {
-    if (!gameRef || !roomId) {
-        seedLocalRound();
-        return;
+      };
     }
 
-    const deck = createRoomDeck();
-    const roomTasks = {};
-    deck.forEach(task => {
-        roomTasks[task.id] = {
-            ...task,
-            points: Number(task.points || 0),
-            completedBy: null,
-            completedAt: null,
-            expiresAt: task.expiresAt || Date.now() + 20 * 1000
-        };
-    });
-
-    const nextPlayers = { ...(roomPlayers || {}) };
-    nextPlayers[playerId] = {
-        ...(nextPlayers[playerId] || {}),
-        name: currentPlayer,
-        score: nextPlayers[playerId]?.score || 0,
-        highscore: nextPlayers[playerId]?.highscore || 0,
-        connected: true
-    };
-
-    roomPlayers = nextPlayers;
-
-    gameRef.set({
-        players: roomPlayers,
-        tasks: roomTasks
-    }).then(() => {
-        if (gameRef) {
-            showStatus("Raum wieder gestartet.");
-        }
-    }).catch(() => {
-        seedLocalRound();
-    });
-}
-
-function generateRound() {
-    activeImages = [];
-    completedTaskImages = [];
-
-    if (roomId && gameRef) {
-        generateRoundForRoom();
-        return;
+    function createDeck() {
+      return shuffleArray(tasks).slice(0, 3).map(task => createTaskEntry(task));
     }
 
-    if (roomId && !gameRef) {
-        seedLocalRound();
-        return;
+    function persistLocalRound() {
+      saveLocalState();
+      savePlayerMeta();
     }
 
-    seedLocalRound();
-}
-
-function startNewRound() {
-    const confirmReset = window.confirm("Möchtest du wirklich eine neue Runde starten? Bereits erledigte Aufgaben werden zurückgesetzt.");
-    if (!confirmReset) return;
-    generateRound();
-    showStatus("Neue Runde gestartet!");
-}
-
-function updateScore(points) {
-    if (roomId && roomPlayers[playerId]) {
-        const current = roomPlayers[playerId];
-        const nextScore = (current.score || 0) + points;
-        roomPlayers[playerId] = {
-            ...current,
-            score: nextScore,
-            highscore: Math.max(current.highscore || 0, nextScore),
-            name: currentPlayer
-        };
-        if (gameRef) {
-            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
-        }
-        updatePlayerDisplay();
-        updateLeaderboard();
-        return;
+    function generateLocalRound() {
+      activeImages = createDeck();
+      completedTaskImages = [];
+      currentMode = "local";
+      persistLocalRound();
+      renderBoard();
     }
 
-    if (!currentPlayer) {
-        alert("Bitte Spielernamen eingeben.");
-        return;
-    }
+    function renderBoard() {
+      const gameArea = document.getElementById("gameArea");
+      if (!gameArea) return;
+      gameArea.innerHTML = "";
 
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-    players[currentPlayer].score = (players[currentPlayer].score || 0) + points;
-    players[currentPlayer].highscore = Math.max(players[currentPlayer].highscore || 0, players[currentPlayer].score);
-    persistLocalState();
-    updatePlayerDisplay();
-    updateLeaderboard();
-}
-
-function resetScore() {
-    if (roomId && roomPlayers[playerId]) {
-        roomPlayers[playerId] = { ...roomPlayers[playerId], score: 0, name: currentPlayer };
-        if (gameRef) {
-            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
-        }
-        updatePlayerDisplay();
-        updateLeaderboard();
-        return;
-    }
-
-    if (!currentPlayer) return;
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-    players[currentPlayer].score = 0;
-    persistLocalState();
-    updatePlayerDisplay();
-    updateLeaderboard();
-}
-
-function renderBoard() {
-    const gameArea = document.getElementById("gameArea");
-    if (!gameArea) return;
-    gameArea.innerHTML = "";
-
-    if (activeImages.length === 0) {
+      if (activeImages.length === 0) {
         const empty = document.createElement("div");
-        empty.textContent = "Keine Aufgaben mehr verfügbar.";
+        empty.textContent = "Keine Aufgaben verfügbar.";
         empty.style.color = "white";
         empty.style.padding = "20px";
         empty.style.textAlign = "center";
         gameArea.appendChild(empty);
-    }
+      }
 
-    activeImages.forEach((task, index) => {
+      activeImages.forEach((task, index) => {
         const card = document.createElement("div");
         card.className = "card";
         card.style.animationDelay = `${index * 0.07}s`;
@@ -731,266 +663,392 @@ function renderBoard() {
         card.appendChild(img);
         card.appendChild(button);
         gameArea.appendChild(card);
-    });
+      });
 
-    updateRoundSummary();
-    updateLeaderboard();
-}
-
-function completeTask(task) {
-    if (!task || !currentPlayer) {
-        alert("Bitte Spielernamen eingeben.");
-        return;
+      updateRoundSummary();
+      updateLeaderboard();
+      updatePlayerDisplay();
     }
 
-    if (roomId && gameRef) {
-        const taskRef = gameRef.child("tasks").child(task.id);
-        taskRef.transaction((currentTask) => {
-            if (!currentTask) return currentTask;
-            if (currentTask.completedBy) return currentTask;
-            return {
-                ...currentTask,
-                completedBy: playerId,
-                completedAt: Date.now()
-            };
-        });
+    function openImageModal(src) {
+      const modal = document.getElementById("imageModal");
+      const img = document.getElementById("modalImage");
+      if (!modal || !img) return;
 
-        const playerRef = gameRef.child("players").child(playerId);
-        playerRef.transaction((currentPlayerData) => {
-            const base = currentPlayerData || { name: currentPlayer, score: 0, highscore: 0 };
-            const newScore = (base.score || 0) + Number(task.points || 0);
-            return {
-                ...base,
-                name: currentPlayer,
-                score: newScore,
-                highscore: Math.max(base.highscore || 0, newScore),
-                connected: true
-            };
-        });
-
-        triggerScreenFlash(task.points);
-        spawnConfetti();
-        return;
+      img.src = src;
+      modal.classList.add("show");
     }
 
-    activeImages = activeImages.filter(item => item.image !== task.image);
-    completedTaskImages.push(task.image);
-    ensureTaskDeck();
+    function closeImageModal() {
+      const modal = document.getElementById("imageModal");
+      const img = document.getElementById("modalImage");
+      if (!modal || !img) return;
 
-    updateScore(task.points);
-    triggerScreenFlash(task.points);
-    spawnConfetti();
-    persistLocalState();
-    renderBoard();
-}
-
-function ensureTaskDeck() {
-    const targetCount = 3;
-    const activeSet = new Set(activeImages.map(task => task.image));
-    const available = tasks.filter(task => !activeSet.has(task.image) && !completedTaskImages.includes(task.image));
-
-    while (activeImages.length < targetCount && available.length > 0) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        const task = available.splice(randomIndex, 1)[0];
-        activeImages.push(makeTaskEntry(task));
+      modal.classList.remove("show");
+      img.src = "";
     }
-}
 
-function openImageModal(imageSrc) {
-    const modal = document.getElementById("imageModal");
-    const image = document.getElementById("modalImage");
-    if (!modal || !image) return;
-    image.src = imageSrc;
-    modal.classList.add("show");
-}
+    function triggerScreenFlash(points) {
+      const flash = document.getElementById("screenFlash");
+      const text = document.getElementById("screenFlashText");
+      if (!flash || !text) return;
 
-function closeImageModal() {
-    const modal = document.getElementById("imageModal");
-    const image = document.getElementById("modalImage");
-    if (!modal || !image) return;
-    modal.classList.remove("show");
-    image.src = "";
-}
+      text.textContent = points > 0 ? `+${points} Punkte` : "Aufgabe erledigt!";
+      flash.classList.remove("show");
+      void flash.offsetWidth;
+      flash.classList.add("show");
+      setTimeout(() => flash.classList.remove("show"), 800);
+    }
 
-function triggerScreenFlash(points) {
-    const flash = document.getElementById("screenFlash");
-    const text = document.getElementById("screenFlashText");
-    if (!flash || !text) return;
-    text.textContent = points > 0 ? `+${points} Punkte` : "Aufgabe erledigt!";
-    flash.classList.remove("show");
-    void flash.offsetWidth;
-    flash.classList.add("show");
-    setTimeout(() => flash.classList.remove("show"), 800);
-}
+    function spawnConfetti() {
+      const layer = document.getElementById("confettiLayer");
+      if (!layer) return;
 
-function spawnConfetti() {
-    const layer = document.getElementById("confettiLayer");
-    if (!layer) return;
-    const colors = ["#fbbf24", "#f97316", "#22c55e", "#38bdf8", "#a78bfa", "#ef4444", "#f472b6"];
-    for (let i = 0; i < 80; i++) {
+      const colors = ["#fbbf24", "#f97316", "#22c55e", "#38bdf8", "#a78bfa", "#ef4444", "#f472b6"];
+
+      for (let i = 0; i < 80; i++) {
         const piece = document.createElement("span");
         piece.className = "confetti-piece";
         piece.style.left = `${Math.random() * window.innerWidth}px`;
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
         piece.style.setProperty("--dx", `${(Math.random() * 220 - 110).toFixed(1)}px`);
         piece.style.opacity = String(0.8 + Math.random() * 0.2);
-        piece.style.animationDelay = `${(Math.random() * 0.1).toFixed(2)}s`;
+        piece.style.animationDelay = `${(Math.random() * 0.12).toFixed(2)}s`;
         layer.appendChild(piece);
         setTimeout(() => piece.remove(), 1800);
+      }
     }
-}
 
-function refreshExpiredTasks() {
-    const now = Date.now();
-    const expired = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
-    if (!expired.length) return;
+    function updateLocalScore(points) {
+      const localPlayers = getPlayerLocalData();
+      if (!currentPlayer) {
+        alert("Bitte Spielername eingeben.");
+        return;
+      }
 
-    if (roomId && gameRef) {
-        expired.forEach(task => {
-            if (!task.id) return;
-            gameRef.child("tasks").child(task.id).transaction(currentTask => {
-                if (!currentTask) return currentTask;
-                if (currentTask.completedBy) return currentTask;
-                return {
-                    ...currentTask,
-                    completedBy: "expired",
-                    completedAt: now
-                };
-            });
+      if (!localPlayers[currentPlayer]) {
+        localPlayers[currentPlayer] = { score: 0, highscore: 0, name: currentPlayer };
+      }
+
+      localPlayers[currentPlayer].score = (localPlayers[currentPlayer].score || 0) + points;
+      localPlayers[currentPlayer].highscore = Math.max(localPlayers[currentPlayer].highscore || 0, localPlayers[currentPlayer].score);
+      localPlayers[currentPlayer].name = currentPlayer;
+
+      localStorage.setItem("jetlag-regenspurge", JSON.stringify({
+        players: localPlayers,
+        activeImages,
+        completedTaskImages
+      }));
+
+      updatePlayerDisplay();
+      updateLeaderboard();
+    }
+
+    function resetLocalScore() {
+      const localPlayers = getPlayerLocalData();
+      if (!currentPlayer) return;
+
+      if (!localPlayers[currentPlayer]) {
+        localPlayers[currentPlayer] = { score: 0, highscore: 0, name: currentPlayer };
+      }
+
+      localPlayers[currentPlayer].score = 0;
+      localPlayers[currentPlayer].highscore = Math.max(localPlayers[currentPlayer].highscore || 0, 0);
+
+      localStorage.setItem("jetlag-regenspurge", JSON.stringify({
+        players: localPlayers,
+        activeImages,
+        completedTaskImages
+      }));
+
+      updatePlayerDisplay();
+      updateLeaderboard();
+    }
+
+    function ensureLocalDeck() {
+      const targetCount = 3;
+      const activeImagesSet = new Set(activeImages.map(task => task.image));
+      const available = tasks.filter(task => !activeImagesSet.has(task.image) && !completedTaskImages.includes(task.image));
+
+      while (activeImages.length < targetCount && available.length > 0) {
+        const randomIndex = Math.floor(Math.random() * available.length);
+        const task = available.splice(randomIndex, 1)[0];
+        activeImages.push(createTaskEntry(task));
+      }
+    }
+
+    function completeLocalTask(task) {
+      if (!task || !currentPlayer) {
+        alert("Bitte Spielername eingeben.");
+        return;
+      }
+
+      activeImages = activeImages.filter(item => item.id !== task.id);
+      completedTaskImages.push(task.image);
+      ensureLocalDeck();
+
+      updateLocalScore(task.points);
+      triggerScreenFlash(task.points);
+      spawnConfetti();
+      persistLocalRound();
+      renderBoard();
+    }
+
+    function completeTask(task) {
+      if (currentMode === "room" && gameRef && roomId) {
+        const taskRef = gameRef.child("tasks").child(task.id);
+
+        taskRef.transaction((currentTask) => {
+          if (!currentTask) return currentTask;
+          if (currentTask.completedBy) return currentTask;
+
+          return {
+            ...currentTask,
+            completedBy: playerId,
+            completedAt: Date.now()
+          };
         });
+
+        const playerRef = gameRef.child("players").child(playerId);
+        playerRef.transaction((curr) => {
+          const base = curr || { name: currentPlayer, score: 0, highscore: 0 };
+          const newScore = (base.score || 0) + Number(task.points || 0);
+
+          return {
+            ...base,
+            name: currentPlayer,
+            score: newScore,
+            highscore: Math.max(base.highscore || 0, newScore),
+            connected: true
+          };
+        });
+
+        triggerScreenFlash(task.points);
+        spawnConfetti();
         return;
+      }
+
+      completeLocalTask(task);
     }
 
-    activeImages = activeImages.filter(task => !task.expiresAt || task.expiresAt > now);
-    expired.forEach(task => {
-        if (!completedTaskImages.includes(task.image)) {
-            completedTaskImages.push(task.image);
-        }
-    });
-    ensureTaskDeck();
-    persistLocalState();
-    renderBoard();
-}
-
-function startTimerLoop() {
-    if (timerLoop) return;
-    timerLoop = setInterval(() => {
-        refreshExpiredTasks();
-    }, 1000);
-}
-
-function connectToRoom() {
-    if (!roomId) return;
-    if (!db && !initFirebase()) {
-        localMode = true;
-        showStatus("Firebase ist nicht aktiv. Das Spiel läuft lokal weiter.");
-        generateRound();
+    function resetRoomScore() {
+      if (!roomId || !gameRef || currentMode !== "room") {
+        resetLocalScore();
         return;
+      }
+
+      const currentData = roomPlayers[playerId] || { name: currentPlayer, score: 0, highscore: 0 };
+      const next = {
+        ...currentData,
+        name: currentPlayer,
+        score: 0,
+        highscore: currentData.highscore || 0
+      };
+
+      roomPlayers[playerId] = next;
+      gameRef.child("players").child(playerId).set(next);
+      updateLeaderboard();
+      updatePlayerDisplay();
     }
 
-    localMode = false;
-    gameRef = db.ref(`rooms/${roomId}`);
-    gameRef.on("value", (snapshot) => {
+    function startNewRound() {
+      const confirmReset = window.confirm("Möchtest du wirklich eine neue Runde starten?");
+      if (!confirmReset) return;
+
+      if (currentMode === "room" && gameRef && roomId) {
+        generateRoomRound();
+        showStatus("Neue Runde gestartet!");
+        return;
+      }
+
+      generateLocalRound();
+      showStatus("Neue Runde gestartet!");
+    }
+
+    function generateRoomRound() {
+      const deck = createDeck();
+      const tasksMap = {};
+
+      deck.forEach(task => {
+        tasksMap[task.id] = {
+          ...task,
+          points: Number(task.points || 0),
+          expiresAt: task.expiresAt || Date.now() + 20 * 1000,
+          completedBy: null,
+          completedAt: null
+        };
+      });
+
+      roomPlayers[playerId] = {
+        ...(roomPlayers[playerId] || {}),
+        name: currentPlayer,
+        score: roomPlayers[playerId]?.score || 0,
+        highscore: roomPlayers[playerId]?.highscore || 0,
+        connected: true
+      };
+
+      gameRef.set({
+        players: roomPlayers,
+        tasks: tasksMap
+      });
+    }
+
+    function connectToRoom() {
+      if (!roomId) return;
+
+      if (!db && !initFirebase()) {
+        currentMode = "local";
+        showStatus("Firebase nicht erreichbar. Lokal gestartet.");
+        generateLocalRound();
+        return;
+      }
+
+      currentMode = "room";
+      gameRef = db.ref(`rooms/${roomId}`);
+
+      gameRef.on("value", (snapshot) => {
         const data = snapshot.val() || {};
         roomPlayers = data.players || {};
-        const tasksMap = data.tasks || {};
-        const tasksList = Object.values(tasksMap);
-
-        activeImages = tasksList.filter(task => !task.completedBy);
-        completedTaskImages = tasksList.filter(task => task.completedBy).map(task => task.image);
 
         if (!Object.prototype.hasOwnProperty.call(roomPlayers, playerId)) {
-            roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+          roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+          gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
         }
 
-        if (!tasksList.length) {
-            const fallbackDeck = createRoomDeck();
-            activeImages = fallbackDeck;
-            completedTaskImages = [];
-            renderBoard();
-            generateRoundForRoom();
-            return;
+        const tasksMap = data.tasks || {};
+        const taskList = Object.values(tasksMap);
+
+        if (!taskList.length) {
+          generateRoomRound();
+          return;
         }
 
+        activeImages = taskList.filter(task => !task.completedBy);
+        completedTaskImages = taskList.filter(task => task.completedBy).map(task => task.image);
+
+        renderBoard();
         updatePlayerDisplay();
         updateLeaderboard();
-        renderBoard();
-    });
+      });
 
-    if (!roomPlayers[playerId]) {
-        roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-        gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+      roomPlayers[playerId] = {
+        ...(roomPlayers[playerId] || {}),
+        name: currentPlayer,
+        score: roomPlayers[playerId]?.score || 0,
+        highscore: roomPlayers[playerId]?.highscore || 0,
+        connected: true
+      };
+
+      gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+      updatePlayerDisplay();
+      updateLeaderboard();
     }
 
-    updatePlayerDisplay();
-    updateLeaderboard();
-}
+    function joinRoom() {
+      const nameInput = document.getElementById("playerName");
+      const roomInput = document.getElementById("roomCode");
 
-function joinOrCreateRoom() {
-    const nameInput = document.getElementById("playerName");
-    const roomInput = document.getElementById("roomCode");
-    if (!nameInput || !roomInput) return;
+      if (!nameInput || !roomInput) return;
 
-    const name = nameInput.value.trim();
-    if (!name) {
-        alert("Bitte Spielernamen eingeben.");
+      const name = nameInput.value.trim();
+      if (!name) {
+        alert("Bitte Spielername eingeben.");
         return;
-    }
+      }
 
-    currentPlayer = name;
-    roomId = normalizeRoomId(roomInput.value);
-    roomInput.value = roomId;
-    savePlayerMeta();
+      currentPlayer = name;
+      roomId = normalizeRoomId(roomInput.value);
+      roomInput.value = roomId;
 
-    if (window.firebase && firebaseConfig.databaseURL) {
-        initFirebase();
+      savePlayerMeta();
+
+      if (initFirebase()) {
         connectToRoom();
-    } else {
-        localMode = true;
-        showStatus("Firebase nicht aktiv. Spiel läuft lokal.");
-        generateRound();
-    }
-}
-
-function bindUI() {
-    const playerName = document.getElementById("playerName");
-    const roomCode = document.getElementById("roomCode");
-    if (playerName) playerName.value = currentPlayer;
-    if (roomCode) roomCode.value = roomId;
-
-    document.getElementById("joinRoomBtn").addEventListener("click", joinOrCreateRoom);
-    document.getElementById("resetScoreBtn").addEventListener("click", resetScore);
-    document.getElementById("newRoundBtn").addEventListener("click", startNewRound);
-    document.getElementById("closeModalBtn").addEventListener("click", closeImageModal);
-    document.getElementById("imageModal").addEventListener("click", closeImageModal);
-    document.getElementById("modalImage").addEventListener("click", (event) => event.stopPropagation());
-}
-
-function init() {
-    loadLocalState();
-    bindUI();
-
-    if (!currentPlayer) {
-        const savedName = localStorage.getItem("jetlag-player-name");
-        if (savedName) currentPlayer = savedName;
-        const nameInput = document.getElementById("playerName");
-        if (nameInput) nameInput.value = currentPlayer;
+        showStatus("Raum betreten.");
+      } else {
+        currentMode = "local";
+        showStatus("Firebase nicht erreichbar – lokal gespielt.");
+        generateLocalRound();
+      }
     }
 
-    if (roomId) {
-        initFirebase();
+    function refreshExpiredLocalTasks() {
+      if (currentMode !== "local") return;
+
+      const now = Date.now();
+      const expired = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
+      if (!expired.length) return;
+
+      activeImages = activeImages.filter(task => !task.expiresAt || task.expiresAt > now);
+      expired.forEach(task => {
+        if (!completedTaskImages.includes(task.image)) {
+          completedTaskImages.push(task.image);
+        }
+      });
+
+      ensureLocalDeck();
+      persistLocalRound();
+      renderBoard();
+    }
+
+    function startTimerLoop() {
+      if (timerLoop) return;
+
+      timerLoop = setInterval(() => {
+        refreshExpiredLocalTasks();
+      }, 1000);
+    }
+
+    function bindUI() {
+      document.getElementById("joinRoomBtn").addEventListener("click", joinRoom);
+      document.getElementById("resetScoreBtn").addEventListener("click", () => {
+        if (currentMode === "room" && gameRef && roomId) {
+          resetRoomScore();
+        } else {
+          resetLocalScore();
+        }
+      });
+
+      document.getElementById("newRoundBtn").addEventListener("click", startNewRound);
+      document.getElementById("closeModalBtn").addEventListener("click", closeImageModal);
+      document.getElementById("imageModal").addEventListener("click", closeImageModal);
+      document.getElementById("modalImage").addEventListener("click", (event) => event.stopPropagation());
+    }
+
+    function init() {
+      bindUI();
+
+      const savedState = loadLocalState();
+      if (savedState.players) {
+        const localPlayers = savedState.players;
+        if (currentPlayer && localPlayers[currentPlayer]) {
+          // ok
+        }
+      }
+
+      const nameInput = document.getElementById("playerName");
+      const roomInput = document.getElementById("roomCode");
+
+      if (currentPlayer && nameInput) {
+        nameInput.value = currentPlayer;
+      }
+
+      if (roomId && roomInput) {
+        roomInput.value = roomId;
+      }
+
+      if (roomId) {
         connectToRoom();
-    } else {
-        seedLocalRound();
+      } else {
+        generateLocalRound();
+      }
+
+      updatePlayerDisplay();
+      updateLeaderboard();
+      startTimerLoop();
     }
 
-    updatePlayerDisplay();
-    updateLeaderboard();
-    startTimerLoop();
-}
-
-window.addEventListener("DOMContentLoaded", init);
-</script>
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
