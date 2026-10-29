@@ -1,1 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RegensPurge</title>
+    <style>
+      :root {
+        --bg-overlay: rgba(12, 22, 31, 0.6);
+        --panel: rgba(11, 16, 22, 0.78);
+        --panel-strong: rgba(18, 24, 32, 0.9);
+        --card: rgba(255, 255, 255, 0.1);
+        --card-border: rgba(255, 255, 255, 0.2);
+        --primary: #69f0ae;
+        --primary-strong: #2dd4bf;
+        --secondary: #ffd166;
+        --danger: #ff6b6b;
+        --text: #eaf7ff;
+        --muted: #b9d5e6;
+        --shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      }
 
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background-color: #0c1320;
+      }
+
+      body {
+        min-height: 100vh;
+        background-image: url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      .page-overlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(9, 15, 20, 0.7), rgba(9, 14, 18, 0.5));
+        z-index: 0;
+      }
+
+      .app {
+        position: relative;
+        z-index: 1;
+        width: min(1200px, calc(100% - 24px));
+        margin: 0 auto;
+        padding: 20px 0 40px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background: rgba(10, 15, 18, 0.72);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 22px;
+        padding: 18px 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .title {
+        font-size: clamp(2rem, 3vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0;
+        color: var(--primary);
+        text-shadow: 0 0 18px rgba(105, 240, 174, 0.55);
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .player-panel {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .player-input-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .player-input-wrap input {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(20, 31, 39, 0.8);
+        color: var(--text);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 1rem;
+        min-width: 220px;
+      }
+
+      .score-box {
+        min-width: 140px;
+        background: linear-gradient(135deg, rgba(105, 240, 174, 0.18), rgba(45, 212, 191, 0.18));
+        border: 1px solid rgba(105, 240, 174, 0.3);
+        border-radius: 18px;
+        padding: 10px 16px;
+        text-align: center;
+      }
+
+      .score-label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .score-value {
+        font-size: clamp(1.8rem, 2vw, 2.4rem);
+        font-weight: 900;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+        gap: 20px;
+        margin-top: 24px;
+      }
+
+      .task-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 520px;
+        background: rgba(8, 13, 17, 0.78);
+        border: 1px solid var(--card-border);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .task-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 32px rgba(0, 0, 0, 0.42);
+      }
+
+      .task-card.expired {
+        border-color: rgba(255, 107, 107, 0.6);
+        box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.4), var(--shadow);
+      }
+
+      .card-image-wrap {
+        position: relative;
+        height: 260px;
+        background: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .card-image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .task-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 18px 18px 16px;
+      }
+
+      .task-title {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+
+      .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        background: rgba(255, 209, 102, 0.12);
+        color: #ffe7a4;
+        border: 1px solid rgba(255, 209, 102, 0.3);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+
+      .timer {
+        color: #fce6a3;
+        font-weight: 800;
+        font-size: 0.96rem;
+        text-align: right;
+      }
+
+      .timer.warning {
+        color: #ffca8a;
+      }
+
+      .timer.danger {
+        color: #ff8d8d;
+      }
+
+      .task-button {
+        margin-top: auto;
+        width: 100%;
+        border: none;
+        border-radius: 14px;
+        padding: 16px 18px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        color: #0c1b22;
+        font-weight: 900;
+        font-size: 1rem;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: filter 0.18s ease, transform 0.18s ease;
+      }
+
+      .task-button:hover {
+        filter: brightness(1.04);
+        transform: translateY(-1px);
+      }
+
+      .task-button:active {
+        transform: translateY(0);
+      }
+
+      .task-card.expired .task-button {
+        background: linear-gradient(135deg, #ff8d8d, #ff6b6b);
+        color: #fff;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(3, 7, 10, 0.7);
+        z-index: 20;
+      }
+
+      .modal.show {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(420px, calc(100% - 28px));
+        background: rgba(10, 15, 20, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 22px 20px 18px;
+      }
+
+      .modal-card h3 {
+        margin: 0 0 10px;
+        font-size: 1.55rem;
+      }
+
+      .modal-card p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .custom-points {
+        display: none;
+        margin-bottom: 16px;
+      }
+
+      .custom-points.show {
+        display: block;
+      }
+
+      .custom-points label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .custom-points input {
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(20, 31, 39, 0.8);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 1rem;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .secondary-btn,
+      .primary-btn,
+      .restart-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-weight: 800;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .secondary-btn {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+      }
+
+      .primary-btn,
+      .restart-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        color: #0c1b22;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(8, 15, 18, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 12px 20px;
+        font-weight: 700;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 25;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .finish-screen {
+        display: none;
+        margin-top: 24px;
+        background: rgba(10, 15, 18, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 30px 22px;
+        text-align: center;
+      }
+
+      .finish-screen.show {
+        display: block;
+      }
+
+      .finish-screen h2 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+      }
+
+      .finish-screen p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      .confetti-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 50;
+      }
+
+      .confetti-piece {
+        position: absolute;
+        top: -20px;
+        width: 10px;
+        height: 18px;
+        border-radius: 3px;
+        opacity: 0.9;
+        animation: confetti-fall 1500ms ease-in forwards;
+      }
+
+      @keyframes confetti-fall {
+        0% {
+          transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate3d(var(--dx), 110vh, 0) rotateZ(600deg) scale(0.9);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .player-panel {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .app {
+          width: min(100% - 16px, 1200px);
+          padding-top: 12px;
+        }
+
+        .topbar {
+          padding: 16px;
+        }
+
+        .player-panel {
+          display: grid;
+          width: 100%;
+          grid-template-columns: 1fr;
+        }
+
+        .player-input-wrap input {
+          min-width: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-overlay"></div>
+
+    <div class="app">
+      <header class="topbar">
+        <div class="title-wrap">
+          <h1 class="title">RegensPurge</h1>
+          <p class="subtitle">Missionen, Punkte & Kampfkraft</p>
+        </div>
+
+        <div class="player-panel">
+          <label class="player-input-wrap">
+            Spielername
+            <input id="playerNameInput" type="text" value="Spieler" maxlength="22" />
+          </label>
+
+          <div class="score-box">
+            <span class="score-label">Punkte</span>
+            <span id="scoreValue" class="score-value">0</span>
+          </div>
+        </div>
+      </header>
+
+      <main id="board" class="board" aria-live="polite"></main>
+
+      <section id="finishScreen" class="finish-screen">
+        <h2>Runde beendet!</h2>
+        <p id="finishSummary">Du hast 0 Punkte gesammelt.</p>
+        <button id="newGameBtn" class="restart-btn" type="button">Neues Spiel</button>
+      </section>
+    </div>
+
+    <div id="confirmModal" class="modal" aria-modal="true" role="dialog">
+      <div class="modal-card">
+        <h3>Aufgabe erledigt?</h3>
+        <p id="confirmText">Bist du sicher?</p>
+
+        <div id="customPointsWrap" class="custom-points">
+          <label>
+            Punkte selbst eintragen
+            <input id="customPointsInput" type="number" min="0" step="5" value="0" />
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button id="cancelConfirmBtn" class="secondary-btn" type="button">Abbrechen</button>
+          <button id="confirmBtn" class="primary-btn" type="button">Bestätigen</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+
+    <script>
+      const tasks = [
+        { id: 1, title: 'Stadt-Check', image: 'card-small(1).png', points: 20, customPoints: false },
+        { id: 2, title: 'Kaffeepause', image: 'card-small (2).png', points: 25, customPoints: false },
+        { id: 3, title: 'Blick auf die Donau', image: 'card-small (3).png', points: 30, customPoints: false },
+        { id: 4, title: 'Altstadt-Abenteuer', image: 'card-small (4).png', points: 35, customPoints: false },
+        { id: 5, title: 'Regensburger Snack', image: 'card-small (5).png', points: 40, customPoints: false },
+        { id: 6, title: 'Foto-Highlight', image: 'card-small (6).png', points: 25, customPoints: false },
+        { id: 7, title: 'Zusammen mit Freunden', image: 'card-small (7).png', points: 30, customPoints: false },
+        { id: 8, title: 'Tour durch die Gassen', image: 'card-small (8).png', points: 20, customPoints: false },
+        { id: 9, title: 'Mit dem Stadtbild feiern', image: 'card-small (9).png', points: 45, customPoints: false },
+        { id: 10, title: 'Eigenes Punkteritual', image: 'card-small (10).png', points: 15, customPoints: true },
+        { id: 11, title: 'Finale Überraschung', image: 'card-small (11).png', points: 50, customPoints: true }
+      ];
+
+      const board = document.getElementById('board');
+      const scoreValue = document.getElementById('scoreValue');
+      const playerNameInput = document.getElementById('playerNameInput');
+      const confirmModal = document.getElementById('confirmModal');
+      const confirmText = document.getElementById('confirmText');
+      const customPointsWrap = document.getElementById('customPointsWrap');
+      const customPointsInput = document.getElementById('customPointsInput');
+      const toast = document.getElementById('toast');
+      const confettiLayer = document.getElementById('confettiLayer');
+      const finishScreen = document.getElementById('finishScreen');
+      const finishSummary = document.getElementById('finishSummary');
+
+      let remainingTasks = [];
+      let activeTasks = [];
+      let score = 0;
+      let pendingTaskId = null;
+      let timerHandle = null;
+      let gameStarted = false;
+
+      function shuffleArray(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function formatTimer(ms) {
+        const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
+
+      function getTaskImageUrl(fileName) {
+        return `images/${encodeURIComponent(fileName)}`;
+      }
+
+      function updateScore() {
+        scoreValue.textContent = String(score);
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(showToast.timeoutId);
+        showToast.timeoutId = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 1800);
+      }
+
+      function createConfettiBurst() {
+        const colors = ['#69f0ae', '#ffd166', '#7dd3fc', '#f472b6', '#f87171', '#a78bfa'];
+
+        for (let i = 0; i < 80; i += 1) {
+          const piece = document.createElement('span');
+          piece.className = 'confetti-piece';
+          piece.style.left = `${Math.random() * 100}%`;
+          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 500}px`);
+          confettiLayer.appendChild(piece);
+
+          setTimeout(() => {
+            piece.remove();
+          }, 1600);
+        }
+      }
+
+      function openConfirm(taskId) {
+        const selectedTask = activeTasks.find((task) => task.id === taskId);
+        if (!selectedTask || selectedTask.status !== 'active') return;
+
+        pendingTaskId = taskId;
+        confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? 'Trage die Punkte selbst ein.' : `Du bekommst ${selectedTask.points} Punkte.`}`;
+
+        if (selectedTask.customPoints) {
+          customPointsWrap.classList.add('show');
+          customPointsInput.value = String(Math.max(0, selectedTask.points));
+        } else {
+          customPointsWrap.classList.remove('show');
+        }
+
+        confirmModal.classList.add('show');
+      }
+
+      function closeConfirm() {
+        pendingTaskId = null;
+        confirmModal.classList.remove('show');
+      }
+
+      function confirmTaskCompletion() {
+        if (pendingTaskId === null) return;
+
+        const task = activeTasks.find((entry) => entry.id === pendingTaskId);
+        if (!task) {
+          closeConfirm();
+          return;
+        }
+
+        let pointsToAward = task.points;
+
+        if (task.customPoints) {
+          const parsed = Number(customPointsInput.value);
+          if (!Number.isFinite(parsed) || parsed < 0) {
+            showToast('Bitte gültige Punkte eingeben.');
+            return;
+          }
+          pointsToAward = parsed;
+        }
+
+        task.status = 'done';
+        task.pointsAwarded = pointsToAward;
+        score += pointsToAward;
+        updateScore();
+
+        createConfettiBurst();
+        showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
+
+        activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
+        closeConfirm();
+        refillBoard();
+      }
+
+      function expireTask(taskId) {
+        const task = activeTasks.find((entry) => entry.id === taskId);
+        if (!task || task.status !== 'active') return;
+
+        task.status = 'expired';
+        task.pointsAwarded = 0;
+        showToast(`${task.title} abgelaufen: 0 Punkte`);
+
+        activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
+        refillBoard();
+      }
+
+      function refillBoard() {
+        while (activeTasks.length < 3 && remainingTasks.length > 0) {
+          const nextTask = remainingTasks.shift();
+          if (!nextTask) break;
+          nextTask.status = 'active';
+          nextTask.deadline = Date.now() + 15 * 60 * 1000;
+          activeTasks.push(nextTask);
+        }
+
+        renderBoard();
+
+        if (activeTasks.length === 0 && remainingTasks.length === 0 && gameStarted) {
+          finishScreen.classList.add('show');
+          finishSummary.textContent = `${playerNameInput.value.trim() || 'Spieler'}, du hast insgesamt ${score} Punkte gesammelt.`;
+          gameStarted = false;
+        }
+      }
+
+      function renderBoard() {
+        board.innerHTML = activeTasks
+          .map((task) => {
+            const remainingMs = Math.max(0, task.deadline - Date.now());
+            const timeText = formatTimer(remainingMs);
+            const isWarning = remainingMs <= 60 * 1000 && remainingMs > 30 * 1000;
+            const isDanger = remainingMs <= 30 * 1000;
+
+            return `
+              <article class="task-card ${task.status === 'expired' ? 'expired' : ''}" data-id="${task.id}">
+                <div class="card-image-wrap">
+                  <img src="${getTaskImageUrl(task.image)}" alt="${task.title}" />
+                </div>
+
+                <div class="task-body">
+                  <h2 class="task-title">${task.title}</h2>
+
+                  <div class="task-meta">
+                    <span class="badge">${task.customPoints ? 'Eigenpunkte' : `${task.points} P`}</span>
+                    <span class="timer ${isWarning ? 'warning' : ''} ${isDanger ? 'danger' : ''}">${timeText}</span>
+                  </div>
+
+                  <button class="task-button" type="button" data-task-id="${task.id}">Aufgabe erledigt</button>
+                </div>
+              </article>
+            `;
+          })
+          .join('');
+      }
+
+      function startGame() {
+        score = 0;
+        updateScore();
+        remainingTasks = shuffleArray(tasks);
+        activeTasks = [];
+        gameStarted = true;
+        finishScreen.classList.remove('show');
+
+        refillBoard();
+      }
+
+      function tickTimers() {
+        if (!gameStarted) return;
+
+        activeTasks.forEach((task) => {
+          if (task.status !== 'active') return;
+          if (task.deadline - Date.now() <= 0) {
+            expireTask(task.id);
+          }
+        });
+
+        renderBoard();
+      }
+
+      playerNameInput.addEventListener('input', () => {
+        if (!gameStarted) return;
+        const safeName = playerNameInput.value.trim() || 'Spieler';
+        document.title = `${safeName} | RegensPurge`;
+      });
+
+      board.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-task-id]');
+        if (!button) return;
+        const taskId = Number(button.dataset.taskId);
+        openConfirm(taskId);
+      });
+
+      document.getElementById('cancelConfirmBtn').addEventListener('click', closeConfirm);
+      document.getElementById('confirmBtn').addEventListener('click', confirmTaskCompletion);
+      document.getElementById('newGameBtn').addEventListener('click', startGame);
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && confirmModal.classList.contains('show')) {
+          closeConfirm();
+        }
+      });
+
+      startGame();
+      timerHandle = setInterval(tickTimers, 1000);
+    </script>
+  </body>
+</html>
