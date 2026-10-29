@@ -438,14 +438,25 @@ function normalizeRoomId(value) {
 
 function showStatus(message) {
     const banner = document.getElementById("statusBanner");
+    if (!banner) return;
     banner.textContent = message;
     banner.classList.add("visible");
 }
 
 function hideStatus() {
     const banner = document.getElementById("statusBanner");
+    if (!banner) return;
     banner.classList.remove("visible");
     banner.textContent = "";
+}
+
+function shuffleArray(list) {
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
 }
 
 function loadLocalState() {
@@ -510,7 +521,7 @@ function updateLeaderboard() {
 
     ranking.forEach(([key, data]) => {
         const li = document.createElement("li");
-        const label = roomId && key === playerId ? currentPlayer : (data.name || key);
+        const label = roomId && key === playerId ? (currentPlayer || data.name || key) : (data.name || key);
         li.textContent = `${label}: ${data.highscore ?? 0} Punkte`;
         list.appendChild(li);
     });
@@ -548,7 +559,7 @@ function buildTaskMap(taskList) {
         result[id] = {
             id,
             image: task.image,
-            points: task.points,
+            points: Number(task.points || 0),
             customPoints: !!task.customPoints,
             timeLimit: task.timeLimit || 20,
             expiresAt: task.expiresAt || Date.now() + 20 * 1000,
@@ -564,20 +575,39 @@ function persistLocalState() {
     savePlayerMeta();
 }
 
-function persistRoomState() {
-    if (!gameRef || !roomId) {
-        persistLocalState();
-        return;
+function makeTaskEntry(task) {
+    return {
+        ...task,
+        id: `task-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        timeLimit: 20,
+        expiresAt: Date.now() + 20 * 1000,
+        completedBy: null,
+        completedAt: null
+    };
+}
+
+function createRoomDeck() {
+    return shuffleArray(tasks).slice(0, 3).map((task) => makeTaskEntry(task));
+}
+
+function generateRoundForRoom() {
+    if (!gameRef || !roomId) return;
+
+    if (!roomPlayers[playerId]) {
+        roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
     }
 
-    const roomTasks = buildTaskMap(activeImages.concat(completedTaskImages.map((image, index) => ({
-        id: `done-${index}`,
-        image,
-        points: 0,
-        customPoints: false,
-        completedBy: "done",
-        completedAt: Date.now()
-    }))));
+    const deck = createRoomDeck();
+    const roomTasks = {};
+    deck.forEach((task) => {
+        roomTasks[task.id] = {
+            ...task,
+            points: Number(task.points || 0),
+            completedBy: null,
+            completedAt: null,
+            expiresAt: task.expiresAt || Date.now() + 20 * 1000
+        };
+    });
 
     gameRef.set({
         players: roomPlayers,
@@ -585,47 +615,17 @@ function persistRoomState() {
     });
 }
 
-function createTaskEntry(task) {
-    return {
-        ...task,
-        id: `task-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        timeLimit: 20,
-        expiresAt: Date.now() + 20 * 1000
-    };
-}
-
-function ensureTaskDeck() {
-    const targetCount = 3;
-    const activeSet = new Set(activeImages.map(task => task.image));
-    const available = tasks.filter(task =>
-        !activeSet.has(task.image) && !completedTaskImages.includes(task.image)
-    );
-
-    while (activeImages.length < targetCount && available.length > 0) {
-        const randomIndex = Math.floor(Math.random() * available.length);
-        const task = available.splice(randomIndex, 1)[0];
-        activeImages.push(createTaskEntry(task));
-    }
-}
-
-function getRandomTask() {
-    const activeSet = new Set(activeImages.map(task => task.image));
-    const available = tasks.filter(task =>
-        !activeSet.has(task.image) && !completedTaskImages.includes(task.image)
-    );
-
-    if (available.length === 0) return null;
-    return createTaskEntry(available[Math.floor(Math.random() * available.length)]);
-}
-
 function generateRound() {
     activeImages = [];
     completedTaskImages = [];
-    ensureTaskDeck();
-    persistLocalState();
-    if (gameRef) {
-        persistRoomState();
+
+    if (roomId && gameRef) {
+        generateRoundForRoom();
+        return;
     }
+
+    activeImages = createRoomDeck();
+    persistLocalState();
     renderBoard();
 }
 
@@ -740,6 +740,36 @@ function completeTask(task) {
         return;
     }
 
+    if (roomId && gameRef) {
+        const taskRef = gameRef.child("tasks").child(task.id);
+        taskRef.transaction((currentTask) => {
+            if (!currentTask) return currentTask;
+            if (currentTask.completedBy) return currentTask;
+            return {
+                ...currentTask,
+                completedBy: playerId,
+                completedAt: Date.now()
+            };
+        });
+
+        const playerRef = gameRef.child("players").child(playerId);
+        playerRef.transaction((currentPlayerData) => {
+            const base = currentPlayerData || { name: currentPlayer, score: 0, highscore: 0 };
+            const newScore = (base.score || 0) + Number(task.points || 0);
+            return {
+                ...base,
+                name: currentPlayer,
+                score: newScore,
+                highscore: Math.max(base.highscore || 0, newScore),
+                connected: true
+            };
+        });
+
+        triggerScreenFlash(task.points);
+        spawnConfetti();
+        return;
+    }
+
     activeImages = activeImages.filter(item => item.image !== task.image);
     completedTaskImages.push(task.image);
     ensureTaskDeck();
@@ -748,8 +778,19 @@ function completeTask(task) {
     triggerScreenFlash(task.points);
     spawnConfetti();
     persistLocalState();
-    if (gameRef) persistRoomState();
     renderBoard();
+}
+
+function ensureTaskDeck() {
+    const targetCount = 3;
+    const activeSet = new Set(activeImages.map(task => task.image));
+    const available = tasks.filter(task => !activeSet.has(task.image) && !completedTaskImages.includes(task.image));
+
+    while (activeImages.length < targetCount && available.length > 0) {
+        const randomIndex = Math.floor(Math.random() * available.length);
+        const task = available.splice(randomIndex, 1)[0];
+        activeImages.push(makeTaskEntry(task));
+    }
 }
 
 function openImageModal(imageSrc) {
@@ -801,6 +842,22 @@ function refreshExpiredTasks() {
     const expired = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
     if (!expired.length) return;
 
+    if (roomId && gameRef) {
+        expired.forEach((task) => {
+            if (!task.id) return;
+            gameRef.child("tasks").child(task.id).transaction((currentTask) => {
+                if (!currentTask) return currentTask;
+                if (currentTask.completedBy) return currentTask;
+                return {
+                    ...currentTask,
+                    completedBy: "expired",
+                    completedAt: now
+                };
+            });
+        });
+        return;
+    }
+
     activeImages = activeImages.filter(task => !task.expiresAt || task.expiresAt > now);
     expired.forEach(task => {
         if (!completedTaskImages.includes(task.image)) {
@@ -809,7 +866,6 @@ function refreshExpiredTasks() {
     });
     ensureTaskDeck();
     persistLocalState();
-    if (gameRef) persistRoomState();
     renderBoard();
 }
 
@@ -833,9 +889,9 @@ function connectToRoom() {
         roomPlayers = data.players || {};
         const tasksMap = data.tasks || {};
         const tasksList = Object.values(tasksMap);
+
         activeImages = tasksList.filter(task => !task.completedBy);
         completedTaskImages = tasksList.filter(task => task.completedBy).map(task => task.image);
-        ensureTaskDeck();
 
         if (!Object.prototype.hasOwnProperty.call(roomPlayers, playerId)) {
             roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
@@ -843,7 +899,7 @@ function connectToRoom() {
         }
 
         if (!tasksList.length) {
-            generateRound();
+            generateRoundForRoom();
             return;
         }
 
@@ -852,8 +908,11 @@ function connectToRoom() {
         renderBoard();
     });
 
-    roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-    gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+    if (!roomPlayers[playerId]) {
+        roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+        gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+    }
+
     updatePlayerDisplay();
     updateLeaderboard();
 }
