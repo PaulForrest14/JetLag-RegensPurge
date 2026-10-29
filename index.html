@@ -559,7 +559,11 @@ function initializeGame() {
 }
 
 function resetGameBoard() {
+    const confirmReset = window.confirm("Möchtest du wirklich eine neue Runde starten? Bereits erledigte Aufgaben werden zurückgesetzt.");
+    if (!confirmReset) return;
+
     startNewRound();
+    showStatus("Neue Runde gestartet!");
 }
 
 function openImageModal(imageSrc) {
