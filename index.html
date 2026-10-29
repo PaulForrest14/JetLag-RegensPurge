@@ -485,45 +485,8 @@ const firebaseConfig = {
   measurementId: "G-K758M4BMPZ"
 };
 
-const isFirebaseConfigured =
-    !!firebaseConfig.apiKey &&
-    !!firebaseConfig.databaseURL &&
-    !!firebaseConfig.projectId;
+const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL && firebaseConfig.projectId);
 
-let db = null;
-let gameRef = null;
-let players = {};
-let roomPlayers = {};
-let currentPlayer = "";
-let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
-let roomId = localStorage.getItem("jetlag-room-id") || "";
-let activeImages = [];
-let completedTaskImages = [];
-let animationIndex = null;
-let timerLoop = null;
-
-function initFirebase() {
-    if (!window.firebase) {
-        console.error("Firebase SDK nicht geladen.");
-        return false;
-    }
-
-    if (!isFirebaseConfigured) {
-        console.error("FirebaseConfig ist unvollständig:", firebaseConfig);
-        showStatus("Firebase ist nicht konfiguriert.");
-        return false;
-    }
-
-    try {
-        window.firebase.initializeApp(firebaseConfig);
-        db = window.firebase.database();
-        return true;
-    } catch (error) {
-        console.error("Firebase init error:", error);
-        showStatus("Firebase konnte nicht initialisiert werden. Bitte Firebase-Konfiguration prüfen.");
-        return false;
-    }
-}
 let db = null;
 let gameRef = null;
 let players = {};
@@ -607,7 +570,14 @@ function spawnConfetti() {
 }
 
 function initFirebase() {
-    if (!isFirebaseConfigured || !window.firebase) {
+    if (!window.firebase) {
+        console.error("Firebase SDK nicht geladen.");
+        return false;
+    }
+
+    if (!isFirebaseConfigured) {
+        console.error("FirebaseConfig ist unvollständig:", firebaseConfig);
+        showStatus("Firebase ist nicht konfiguriert.");
         return false;
     }
 
@@ -636,7 +606,10 @@ function saveLocalState() {
 
 function persistState() {
     if (gameRef) {
-        gameRef.set({ players: roomPlayers, tasks: buildTaskMap(activeImages.concat(completedTaskImages.map(image => ({ image, completedBy: "done" })))) });
+        gameRef.set({
+            players: roomPlayers,
+            tasks: buildTaskMap(activeImages.concat(completedTaskImages.map(image => ({ image, completedBy: "done" }))))
+        });
         return;
     }
     saveLocalState();
@@ -1030,52 +1003,79 @@ function refreshExpiredTasks() {
                 points: task.points,
                 customPoints: !!task.customPoints,
                 timeLimit: task.timeLimit || 20,
-                expiresAt: Date.now() + (task.timeLimit || 20) * 60 * 1000,
+                expiresAt: Date.now() + (task.timeLimit || 20) * 1000,
                 completedBy: null,
                 completedAt: null
             };
         });
-        gameRef.child("tasks").set(tasksMap);
-        return;
-    }
 
-    persistState();
-    showStatus("Zeit abgelaufen! Aufgabe verworfen und durch eine neue ersetzt.");
+        const completedMap = {};
+        completedTaskImages.forEach((image, idx) => {
+            completedMap[`done-${idx}`] = {
+                id: `done-${idx}`,
+                image,
+                points: 0,
+                customPoints: false,
+                timeLimit: 20,
+                expiresAt: Date.now() + 20 * 1000,
+                completedBy: "done",
+                completedAt: Date.now()
+            };
+        });
+
+        gameRef.child("tasks").set({ ...tasksMap, ...completedMap });
+    }
 }
 
-function getCustomTaskPoints(task) {
-    const input = window.prompt("Punkte für Aufgabe eingeben:", String(task.points));
-    if (input === null) return null;
+function render() {
+    const gameArea = document.getElementById("gameArea");
+    if (!gameArea) return;
 
-    const points = Number.parseInt(input, 10);
-    if (!Number.isFinite(points) || points < 0) {
-        alert("Bitte eine gültige Zahl eingeben.");
-        return null;
-    }
-    return points;
+    gameArea.innerHTML = "";
+
+    activeImages.forEach((task, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const remaining = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
+        const timer = document.createElement("div");
+        timer.className = "task-timer" + (remaining <= 5 ? " warning" : "");
+        timer.textContent = `${remaining}s`;
+
+        const img = document.createElement("img");
+        img.src = task.image;
+        img.alt = "Aufgabe";
+        img.addEventListener("click", () => openImageModal(task.image));
+
+        const button = document.createElement("button");
+        button.textContent = `${task.points} Punkte`;
+        button.addEventListener("click", () => completeTask(task, index));
+
+        card.appendChild(timer);
+        card.appendChild(img);
+        card.appendChild(button);
+        gameArea.appendChild(card);
+    });
+
+    updateRoundSummary();
+    updateLeaderboard();
 }
 
-function completeTask(index) {
-    if (!currentPlayer) {
-        alert("Bitte zuerst einen Spieler auswählen.");
-        return;
-    }
-
-    const task = activeImages[index];
+function completeTask(task, index) {
     if (!task) return;
 
-    const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
-    if (points === null) return;
-
-    const taskImage = task.image;
-    const card = document.querySelectorAll(".card")[index];
-    if (card) {
-        card.classList.add("task-completed");
+    if (!currentPlayer) {
+        alert("Bitte zuerst Spielernamen eingeben.");
+        return;
     }
 
-    updateScore(points);
+    const points = task.customPoints ? task.points : task.points;
+    const taskImage = task.image;
+
+    activeImages = activeImages.filter(item => item.image !== taskImage);
     completedTaskImages.push(taskImage);
-    activeImages.splice(index, 1);
+
+    updateScore(points);
     triggerScreenFlash(points);
     spawnConfetti();
 
@@ -1089,101 +1089,18 @@ function completeTask(index) {
         });
     }
 
-    if (activeImages.length < 3) {
-        const replacement = getRandomTask();
-        if (replacement) {
-            activeImages.push(replacement);
-        }
-    }
-
     render();
-    updateRoundSummary();
 }
 
-function render() {
-    const gameArea = document.getElementById("gameArea");
-    if (!gameArea) return;
-
-    gameArea.innerHTML = "";
-
-    activeImages.forEach((task, index) => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const img = document.createElement("img");
-        img.src = task.image;
-        img.alt = "Aufgabe";
-        img.addEventListener("click", () => openImageModal(task.image));
-
-        const timer = document.createElement("div");
-        timer.className = "task-timer";
-        if (task.expiresAt) {
-            const remaining = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
-            timer.textContent = `${remaining}s`;
-            if (remaining <= 5) timer.classList.add("warning");
-        } else {
-            timer.textContent = "20s";
-        }
-
-        const button = document.createElement("button");
-        button.textContent = task.customPoints ? `Erledigt (${task.points} Punkte)` : `Erledigt (+${task.points})`;
-        button.addEventListener("click", () => completeTask(index));
-
-        card.appendChild(img);
-        card.appendChild(timer);
-        card.appendChild(button);
-        gameArea.appendChild(card);
-    });
-
-    updateRoundSummary();
-    updateLeaderboard();
-}
-
-function initializeApp() {
+function init() {
     loadCurrentPlayer();
-    const saved = getLocalState();
-    players = saved.players || {};
-
-    if (currentPlayer && !players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-
+    initializeSharedState();
+    startTaskTimerLoop();
     updatePlayerDisplay();
     updateLeaderboard();
-    if (!roomId) {
-        if (activeImages.length === 0 && completedTaskImages.length === 0) {
-            initializeGame();
-        } else {
-            render();
-        }
-    }
-    if (roomId && db) {
-        gameRef = db.ref(`rooms/${roomId}`);
-        connectToRoom();
-    }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-    if (!document.getElementById("playerName")) return;
-    loadCurrentPlayer();
-    const saved = getLocalState();
-    players = saved.players || {};
-    if (currentPlayer && !players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-    updatePlayerDisplay();
-    updateLeaderboard();
-    if (!roomId) {
-        initializeGame();
-    }
-    if (db === null && isFirebaseConfigured) {
-        initFirebase();
-    }
-    if (roomId && db) {
-        gameRef = db.ref(`rooms/${roomId}`);
-        connectToRoom();
-    }
-});
+window.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
