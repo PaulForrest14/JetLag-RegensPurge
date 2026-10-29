@@ -435,7 +435,7 @@ const tasks = [
     { image: "images/card-small (11).png", points: 55 }
 ];
 
-const taskTimeOptions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+const taskTimeOptions = [20];
 
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
@@ -821,7 +821,7 @@ function render() {
         }
 
         const remainingSeconds = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
-        const timerClass = remainingSeconds <= 30 ? "task-timer warning" : "task-timer";
+        const timerClass = remainingSeconds <= 60 ? "task-timer warning" : "task-timer";
 
         const buttonText = task.customPoints
             ? "✅ Erledigt (Punkte eingeben)"
