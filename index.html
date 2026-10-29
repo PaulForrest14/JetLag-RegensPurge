@@ -53,6 +53,11 @@ h1, h2 {
     padding: 18px 20px;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
 }
 
 #playerArea input {
@@ -407,7 +412,8 @@ h1, h2 {
     <div class="topbar">
         <div id="playerArea">
             <input type="text" id="playerName" placeholder="Spielername">
-            <button onclick="selectPlayer()">Spieler starten</button>
+            <input type="text" id="roomCode" placeholder="Raumcode">
+            <button onclick="joinOrCreateRoom()">Raum betreten</button>
         </div>
     </div>
 
@@ -485,11 +491,22 @@ const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY" &&
 let db = null;
 let gameRef = null;
 let players = {};
+let roomPlayers = {};
 let currentPlayer = "";
+let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
+let roomId = localStorage.getItem("jetlag-room-id") || "";
 let activeImages = [];
 let completedTaskImages = [];
 let animationIndex = null;
 let timerLoop = null;
+
+function generateRoomId() {
+    return `ROOM-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
+function normalizeRoomId(value) {
+    return (value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12) || generateRoomId();
+}
 
 function showStatus(message) {
     const banner = document.getElementById("statusBanner");
@@ -563,7 +580,6 @@ function initFirebase() {
     try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
-        gameRef = db.ref("jetlag-regenspurge");
         return true;
     } catch (error) {
         console.error("Firebase init error:", error);
@@ -586,29 +602,132 @@ function saveLocalState() {
 
 function persistState() {
     if (gameRef) {
-        gameRef.set({ players, activeImages, completedTaskImages });
+        gameRef.set({ players: roomPlayers, tasks: buildTaskMap(activeImages.concat(completedTaskImages.map(image => ({ image, completedBy: "done" })))) });
         return;
     }
     saveLocalState();
 }
 
-function initializeSharedState() {
-    if (gameRef) {
-        gameRef.on("value", (snapshot) => {
-            const data = snapshot.val() || {};
-            players = data.players || {};
-            activeImages = data.activeImages || [];
-            completedTaskImages = data.completedTaskImages || [];
+function buildTaskMap(taskList) {
+    const output = {};
+    taskList.forEach((task, index) => {
+        const id = task.id || `task-${index}`;
+        output[id] = {
+            id,
+            image: task.image,
+            points: task.points,
+            customPoints: !!task.customPoints,
+            timeLimit: task.timeLimit || 20,
+            expiresAt: task.expiresAt ?? Date.now() + 20 * 60 * 1000,
+            completedBy: task.completedBy || null,
+            completedAt: task.completedAt || null
+        };
+    });
+    return output;
+}
 
-            if (activeImages.length === 0 && completedTaskImages.length === 0) {
-                initializeGame();
-                return;
-            }
+function savePlayerInfoLocally() {
+    localStorage.setItem("jetlag-player-id", playerId);
+    if (roomId) localStorage.setItem("jetlag-room-id", roomId);
+}
 
-            updatePlayerDisplay();
-            render();
-            updateLeaderboard();
+function joinOrCreateRoom() {
+    const name = document.getElementById("playerName").value.trim();
+    if (!name) {
+        alert("Bitte Spielernamen eingeben.");
+        return;
+    }
+
+    const roomInput = document.getElementById("roomCode").value.trim();
+    roomId = normalizeRoomId(roomInput);
+    savePlayerInfoLocally();
+    currentPlayer = name;
+    document.getElementById("roomCode").value = roomId;
+
+    if (!db) {
+        alert("Firebase ist nicht aktiv. Bitte Firebase-Konfiguration prüfen.");
+        return;
+    }
+
+    gameRef = db.ref(`rooms/${roomId}`);
+    connectToRoom();
+}
+
+function connectToRoom() {
+    if (!gameRef || !roomId) return;
+
+    gameRef.on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        roomPlayers = data.players || {};
+        const roomTasks = data.tasks || {};
+
+        const taskList = Object.values(roomTasks);
+        activeImages = taskList.filter(task => !task.completedBy);
+        completedTaskImages = taskList.filter(task => task.completedBy).map(task => task.image);
+
+        if (!roomPlayers[playerId]) {
+            gameRef.child("players").child(playerId).set({
+                name: currentPlayer,
+                score: 0,
+                highscore: 0,
+                connected: true
+            });
+        }
+
+        if (!roomTasks || Object.keys(roomTasks).length === 0) {
+            resetRoomTasks();
+            return;
+        }
+
+        updatePlayerDisplay();
+        render();
+        updateLeaderboard();
+    });
+
+    const playerRef = gameRef.child("players").child(playerId);
+    playerRef.set({
+        name: currentPlayer,
+        score: 0,
+        highscore: 0,
+        connected: true
+    });
+
+    if (Object.keys(roomPlayers).length === 0 && (!gameRef || !roomId)) {
+        resetRoomTasks();
+    }
+
+    updatePlayerDisplay();
+    updateLeaderboard();
+}
+
+function resetRoomTasks() {
+    if (!gameRef || !roomId) return;
+
+    const roundTasks = [];
+    const shuffled = [...tasks].sort(() => Math.random() - 0.5);
+
+    for (let i = 0; i < Math.min(3, shuffled.length); i++) {
+        const task = shuffled[i];
+        roundTasks.push({
+            id: `task-${Date.now()}-${i}`,
+            image: task.image,
+            points: task.points,
+            customPoints: !!task.customPoints,
+            timeLimit: 20,
+            expiresAt: Date.now() + 20 * 60 * 1000,
+            completedBy: null,
+            completedAt: null
         });
+    }
+
+    gameRef.child("tasks").set(buildTaskMap(roundTasks));
+    showStatus(`Raum ${roomId} geöffnet. Lade andere Spieler ein!`);
+}
+
+function initializeSharedState() {
+    if (roomId && db) {
+        gameRef = db.ref(`rooms/${roomId}`);
+        connectToRoom();
         return;
     }
 
@@ -634,6 +753,13 @@ function selectPlayer() {
     }
 
     currentPlayer = name;
+    document.getElementById("roomCode").value = roomId || "";
+
+    if (roomId && gameRef) {
+        connectToRoom();
+        return;
+    }
+
     if (!players[name]) {
         players[name] = { score: 0, highscore: 0 };
         persistState();
@@ -646,12 +772,26 @@ function selectPlayer() {
     }
 }
 
+function getCurrentPlayerStats() {
+    if (roomId && roomPlayers[playerId]) {
+        return roomPlayers[playerId];
+    }
+
+    if (currentPlayer && players[currentPlayer]) {
+        return players[currentPlayer];
+    }
+
+    return { score: 0, highscore: 0 };
+}
+
 function updatePlayerDisplay() {
     if (!currentPlayer) return;
 
     document.getElementById("activePlayer").textContent = currentPlayer;
-    document.getElementById("score").textContent = players[currentPlayer]?.score ?? 0;
-    document.getElementById("highscore").textContent = players[currentPlayer]?.highscore ?? 0;
+
+    const stats = getCurrentPlayerStats();
+    document.getElementById("score").textContent = stats.score ?? 0;
+    document.getElementById("highscore").textContent = stats.highscore ?? 0;
 
     updateLeaderboard();
 }
@@ -660,15 +800,33 @@ function updateLeaderboard() {
     const list = document.getElementById("leaderboardList");
     list.innerHTML = "";
 
-    const ranking = Object.entries(players).sort((a, b) => b[1].highscore - a[1].highscore);
+    const source = roomId ? Object.entries(roomPlayers) : Object.entries(players);
+    const ranking = source.sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
     ranking.forEach(([name, data]) => {
         const li = document.createElement("li");
-        li.textContent = `${name}: ${data.highscore} Punkte`;
+        const label = roomId && name === playerId ? currentPlayer : data.name || name;
+        li.textContent = `${label}: ${data.highscore ?? 0} Punkte`;
         list.appendChild(li);
     });
 }
 
 function updateScore(points) {
+    if (roomId && gameRef) {
+        gameRef.child("players").child(playerId).transaction((player) => {
+            if (!player) {
+                player = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+            }
+
+            const nextScore = (player.score || 0) + points;
+            player.score = nextScore;
+            if (nextScore > (player.highscore || 0)) {
+                player.highscore = nextScore;
+            }
+            return player;
+        });
+        return;
+    }
+
     if (!currentPlayer) {
         alert("Bitte zuerst einen Spieler auswählen.");
         return;
@@ -689,6 +847,17 @@ function updateScore(points) {
 }
 
 function resetScore() {
+    if (roomId && gameRef) {
+        gameRef.child("players").child(playerId).transaction((player) => {
+            if (!player) {
+                player = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+            }
+            player.score = 0;
+            return player;
+        });
+        return;
+    }
+
     if (!currentPlayer) return;
 
     if (!players[currentPlayer]) {
@@ -716,7 +885,7 @@ function createTaskWithTimer(taskTemplate) {
     return {
         ...taskTemplate,
         timeLimit,
-        expiresAt: Date.now() + timeLimit * 60 * 1000
+        expiresAt: Date.now() + timeLimit * 1000
     };
 }
 
@@ -735,6 +904,11 @@ function getRandomTask() {
 function startNewRound() {
     activeImages = [];
     completedTaskImages = [];
+
+    if (roomId && gameRef) {
+        resetRoomTasks();
+        return;
+    }
 
     for (let i = 0; i < 3; i++) {
         const task = getRandomTask();
@@ -788,6 +962,24 @@ function refreshExpiredTasks() {
         }
     });
 
+    if (roomId && gameRef) {
+        const tasksMap = {};
+        activeImages.forEach((task, idx) => {
+            tasksMap[task.id || `task-${idx}`] = {
+                id: task.id || `task-${idx}`,
+                image: task.image,
+                points: task.points,
+                customPoints: !!task.customPoints,
+                timeLimit: task.timeLimit || 20,
+                expiresAt: Date.now() + (task.timeLimit || 20) * 60 * 1000,
+                completedBy: null,
+                completedAt: null
+            };
+        });
+        gameRef.child("tasks").set(tasksMap);
+        return;
+    }
+
     persistState();
     showStatus("Zeit abgelaufen! Aufgabe verworfen und durch eine neue ersetzt.");
 }
@@ -815,6 +1007,25 @@ function completeTask(index) {
 
     const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
     if (points === null) return;
+
+    if (roomId && gameRef) {
+        gameRef.child("tasks").once("value", (snapshot) => {
+            const tasksMap = snapshot.val() || {};
+            const taskId = task.id;
+            if (!tasksMap[taskId] || tasksMap[taskId].completedBy) return;
+
+            tasksMap[taskId].completedBy = playerId;
+            tasksMap[taskId].completedAt = Date.now();
+            gameRef.child("tasks").set(tasksMap);
+        });
+
+        updateScore(points);
+        triggerScreenFlash(points);
+        spawnConfetti();
+        animationIndex = index;
+        render();
+        return;
+    }
 
     if (!completedTaskImages.includes(task.image)) {
         completedTaskImages.push(task.image);
@@ -892,9 +1103,30 @@ if (firebaseReady) {
     hideStatus();
 }
 
+if (roomId) {
+    document.getElementById("roomCode").value = roomId;
+}
+
+if (localStorage.getItem("jetlag-player-name")) {
+    document.getElementById("playerName").value = localStorage.getItem("jetlag-player-name");
+    currentPlayer = localStorage.getItem("jetlag-player-name");
+}
+
 initializeSharedState();
 startTaskTimerLoop();
 updateLeaderboard();
+
+window.addEventListener("beforeunload", () => {
+    if (roomId && gameRef && playerId) {
+        gameRef.child("players").child(playerId).update({ connected: false });
+    }
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById("playerName").value) {
+        currentPlayer = document.getElementById("playerName").value.trim();
+    }
+});
 </script>
 
 </body>
