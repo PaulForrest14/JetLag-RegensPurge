@@ -290,6 +290,7 @@ h1, h2 {
         <div class="stat score">Punkte: <span id="score">0</span></div>
         <div class="stat">Highscore: <span id="highscore">0</span></div>
         <button onclick="resetScore()">Punktestand zurücksetzen</button>
+        <button onclick="resetGameBoard()">Neues Spiel starten</button>
     </div>
 
     <div class="board-shell">
@@ -406,7 +407,7 @@ function initializeSharedState() {
             activeImages = data.activeImages || [];
             completedTaskImages = data.completedTaskImages || [];
 
-            if (activeImages.length === 0) {
+            if (activeImages.length === 0 && completedTaskImages.length === 0) {
                 initializeGame();
                 return;
             }
@@ -423,7 +424,7 @@ function initializeSharedState() {
     activeImages = saved.activeImages || [];
     completedTaskImages = saved.completedTaskImages || [];
 
-    if (activeImages.length === 0) {
+    if (activeImages.length === 0 && completedTaskImages.length === 0) {
         initializeGame();
     } else {
         render();
@@ -447,7 +448,7 @@ function selectPlayer() {
 
     updatePlayerDisplay();
 
-    if (activeImages.length === 0) {
+    if (activeImages.length === 0 && completedTaskImages.length === 0) {
         initializeGame();
     }
 }
@@ -516,7 +517,7 @@ function getRandomTask() {
     return available[Math.floor(Math.random() * available.length)];
 }
 
-function initializeGame() {
+function startNewRound() {
     activeImages = [];
     completedTaskImages = [];
 
@@ -527,6 +528,20 @@ function initializeGame() {
 
     persistState();
     render();
+    hideStatus();
+}
+
+function initializeGame() {
+    startNewRound();
+}
+
+function resetGameBoard() {
+    if (!currentPlayer) {
+        startNewRound();
+        return;
+    }
+
+    startNewRound();
 }
 
 function openImageModal(imageSrc) {
@@ -581,6 +596,11 @@ function completeTask(index) {
     persistState();
     render();
 
+    const allTasksDone = completedTaskImages.length >= tasks.length;
+    if (allTasksDone) {
+        showStatus("Alle Aufgaben erledigt! Starte ein neues Spiel, um die Runde neu zu beginnen.");
+    }
+
     window.setTimeout(() => {
         animationIndex = null;
         render();
@@ -590,6 +610,12 @@ function completeTask(index) {
 function render() {
     const gameArea = document.getElementById("gameArea");
     gameArea.innerHTML = "";
+
+    if (activeImages.length === 0 && completedTaskImages.length >= tasks.length) {
+        showStatus("Alle Aufgaben erledigt! Starte ein neues Spiel, um die Runde neu zu beginnen.");
+    } else if (activeImages.length === 0) {
+        hideStatus();
+    }
 
     activeImages.forEach((task, index) => {
         const card = document.createElement("div");
