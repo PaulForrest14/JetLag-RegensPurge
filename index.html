@@ -431,7 +431,7 @@
         height: 20px;
         border-radius: 3px;
         opacity: 0.9;
-        animation: confetti-fall 1800ms ease-in forwards;
+        animation: confetti-fall 4200ms ease-in forwards;
       }
 
       @keyframes confetti-fall {
@@ -607,17 +607,17 @@
       function createConfettiBurst() {
         const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
 
-        for (let i = 0; i < 220; i += 1) {
+        for (let i = 0; i < 2200; i += 1) {
           const piece = document.createElement('span');
           piece.className = 'confetti-piece';
           piece.style.left = `${Math.random() * 100}%`;
           piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-          piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 700}px`);
+          piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
           confettiLayer.appendChild(piece);
 
           setTimeout(() => {
             piece.remove();
-          }, 2000);
+          }, 5000);
         }
       }
 
