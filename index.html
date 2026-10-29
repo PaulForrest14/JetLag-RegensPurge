@@ -477,7 +477,7 @@ const taskTimeOptions = [20];
 const firebaseConfig = {
   apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
   authDomain: "regenspurge.firebaseapp.com",
-    databadeURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app/",
+  databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "regenspurge",
   storageBucket: "regenspurge.firebasestorage.app",
   messagingSenderId: "706439523349",
@@ -485,10 +485,45 @@ const firebaseConfig = {
   measurementId: "G-K758M4BMPZ"
 };
 
-const isFirebaseConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY" &&
-    firebaseConfig.databaseURL &&
-    firebaseConfig.databaseURL.includes("firebaseio.com");
+const isFirebaseConfigured =
+    !!firebaseConfig.apiKey &&
+    !!firebaseConfig.databaseURL &&
+    !!firebaseConfig.projectId;
 
+let db = null;
+let gameRef = null;
+let players = {};
+let roomPlayers = {};
+let currentPlayer = "";
+let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
+let roomId = localStorage.getItem("jetlag-room-id") || "";
+let activeImages = [];
+let completedTaskImages = [];
+let animationIndex = null;
+let timerLoop = null;
+
+function initFirebase() {
+    if (!window.firebase) {
+        console.error("Firebase SDK nicht geladen.");
+        return false;
+    }
+
+    if (!isFirebaseConfigured) {
+        console.error("FirebaseConfig ist unvollständig:", firebaseConfig);
+        showStatus("Firebase ist nicht konfiguriert.");
+        return false;
+    }
+
+    try {
+        window.firebase.initializeApp(firebaseConfig);
+        db = window.firebase.database();
+        return true;
+    } catch (error) {
+        console.error("Firebase init error:", error);
+        showStatus("Firebase konnte nicht initialisiert werden. Bitte Firebase-Konfiguration prüfen.");
+        return false;
+    }
+}
 let db = null;
 let gameRef = null;
 let players = {};
