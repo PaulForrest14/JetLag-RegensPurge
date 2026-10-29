@@ -435,7 +435,7 @@ const tasks = [
     { image: "images/card-small (11).png", points: 55 }
 ];
 
-const taskTimeOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50, 60];
+const taskTimeOptions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
@@ -667,7 +667,7 @@ function createTaskWithTimer(taskTemplate) {
     return {
         ...taskTemplate,
         timeLimit,
-        expiresAt: Date.now() + timeLimit * 1000
+        expiresAt: Date.now() + timeLimit * 60 * 1000
     };
 }
 
@@ -794,6 +794,13 @@ function completeTask(index) {
     }, 700);
 }
 
+function formatCountdown(totalSeconds) {
+    const safeSeconds = Math.max(0, totalSeconds);
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 function render() {
     const gameArea = document.getElementById("gameArea");
     gameArea.innerHTML = "";
@@ -814,7 +821,7 @@ function render() {
         }
 
         const remainingSeconds = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
-        const timerClass = remainingSeconds <= 5 ? "task-timer warning" : "task-timer";
+        const timerClass = remainingSeconds <= 30 ? "task-timer warning" : "task-timer";
 
         const buttonText = task.customPoints
             ? "✅ Erledigt (Punkte eingeben)"
@@ -822,7 +829,7 @@ function render() {
 
         card.innerHTML = `
             <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
-            <div class="${timerClass}">⏱ ${remainingSeconds}s</div>
+            <div class="${timerClass}">⏱ ${formatCountdown(remainingSeconds)}</div>
             <button onclick="completeTask(${index})">${buttonText}</button>
         `;
 
