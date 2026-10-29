@@ -194,6 +194,18 @@ h1, h2 {
     cursor: pointer;
 }
 
+.task-timer {
+    padding: 8px 10px 0;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.task-timer.warning {
+    color: #dc2626;
+}
+
 .card button {
     width: 100%;
     border: none;
@@ -370,6 +382,8 @@ const tasks = [
     { image: "images/card-small (11).png", points: 55 }
 ];
 
+const taskTimeOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50, 60];
+
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "regenspurge.firebaseapp.com",
@@ -391,6 +405,7 @@ let currentPlayer = "";
 let activeImages = [];
 let completedTaskImages = [];
 let animationIndex = null;
+let timerLoop = null;
 
 function showStatus(message) {
     const banner = document.getElementById("statusBanner");
@@ -416,6 +431,15 @@ function updateRoundSummary() {
     if (summaryText) {
         summaryText.textContent = `Fortschritt: ${doneCount}/${tasks.length} erledigt`;
     }
+}
+
+function startTaskTimerLoop() {
+    if (timerLoop) return;
+
+    timerLoop = window.setInterval(() => {
+        refreshExpiredTasks();
+        render();
+    }, 1000);
 }
 
 function initFirebase() {
@@ -564,6 +588,26 @@ function resetScore() {
     updatePlayerDisplay();
 }
 
+function getTaskTimeLimit() {
+    const used = new Set((activeImages || []).map(task => task.timeLimit));
+    const available = taskTimeOptions.filter(value => !used.has(value));
+
+    if (available.length === 0) {
+        return taskTimeOptions[Math.floor(Math.random() * taskTimeOptions.length)];
+    }
+
+    return available[Math.floor(Math.random() * available.length)];
+}
+
+function createTaskWithTimer(taskTemplate) {
+    const timeLimit = getTaskTimeLimit();
+    return {
+        ...taskTemplate,
+        timeLimit,
+        expiresAt: Date.now() + timeLimit * 1000
+    };
+}
+
 function getRandomTask() {
     const available = tasks.filter(task =>
         !activeImages.some(active => active.image === task.image) &&
@@ -571,7 +615,9 @@ function getRandomTask() {
     );
 
     if (available.length === 0) return null;
-    return available[Math.floor(Math.random() * available.length)];
+
+    const taskTemplate = available[Math.floor(Math.random() * available.length)];
+    return createTaskWithTimer(taskTemplate);
 }
 
 function startNewRound() {
@@ -611,6 +657,27 @@ function closeImageModal() {
     const modal = document.getElementById("imageModal");
     modal.classList.remove("show");
     document.getElementById("modalImage").src = "";
+}
+
+function refreshExpiredTasks() {
+    const now = Date.now();
+    const expiredTasks = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
+
+    if (expiredTasks.length === 0) return;
+
+    activeImages = activeImages.filter(task => !(task.expiresAt && task.expiresAt <= now));
+
+    expiredTasks.forEach(task => {
+        if (!completedTaskImages.includes(task.image)) {
+            const replacement = getRandomTask();
+            if (replacement) {
+                activeImages.push(replacement);
+            }
+        }
+    });
+
+    persistState();
+    showStatus("Zeit abgelaufen! Aufgabe verworfen und durch eine neue ersetzt.");
 }
 
 function getCustomTaskPoints(task) {
@@ -682,12 +749,16 @@ function render() {
             card.classList.add("task-completed");
         }
 
+        const remainingSeconds = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
+        const timerClass = remainingSeconds <= 5 ? "task-timer warning" : "task-timer";
+
         const buttonText = task.customPoints
             ? "✅ Erledigt (Punkte eingeben)"
             : `✅ Erledigt (+${task.points} Punkte)`;
 
         card.innerHTML = `
             <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
+            <div class="${timerClass}">⏱ ${remainingSeconds}s</div>
             <button onclick="completeTask(${index})">${buttonText}</button>
         `;
 
@@ -701,6 +772,7 @@ if (firebaseReady) {
 }
 
 initializeSharedState();
+startTaskTimerLoop();
 updateLeaderboard();
 </script>
 
