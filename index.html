@@ -146,54 +146,54 @@ font-size: clamp(1.8rem, 2vw, 2.4rem);
 font-weight: 900;
 }
 
-      .leaderboard-panel {
-        margin-top: 18px;
-        background: rgba(57, 44, 33, 0.72);
-        border: 1px solid rgba(255, 243, 222, 0.12);
-        border-radius: 24px;
-        padding: 18px 20px;
-        box-shadow: var(--shadow);
-      }
+.leaderboard-panel {
+margin-top: 18px;
+background: rgba(57, 44, 33, 0.72);
+border: 1px solid rgba(255, 243, 222, 0.12);
+border-radius: 24px;
+padding: 18px 20px;
+box-shadow: var(--shadow);
+}
 
-      .leaderboard-title {
-        margin: 0 0 12px;
-        font-size: 0.8rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
+.leaderboard-title {
+margin: 0 0 12px;
+font-size: 0.8rem;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(--muted);
+}
 
-      .leaderboard-list {
-        list-style: none;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
-        padding: 0;
-        margin: 0;
-      }
+.leaderboard-list {
+list-style: none;
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+gap: 10px;
+padding: 0;
+margin: 0;
+}
 
-      .leaderboard-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 14px;
-        padding: 10px 12px;
-        border: 1px solid rgba(255, 243, 222, 0.08);
-      }
+.leaderboard-item {
+display: flex;
+justify-content: space-between;
+gap: 12px;
+align-items: center;
+background: rgba(255, 255, 255, 0.04);
+border-radius: 14px;
+padding: 10px 12px;
+border: 1px solid rgba(255, 243, 222, 0.08);
+}
 
-      .leaderboard-name {
-        font-weight: 700;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+.leaderboard-name {
+font-weight: 700;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
 
-      .leaderboard-score {
-        color: var(--gold-soft);
-        font-weight: 900;
-      }
+.leaderboard-score {
+color: var(--gold-soft);
+font-weight: 900;
+}
 
 .board {
 display: grid;
@@ -465,34 +465,34 @@ color: var(--muted);
 font-size: 1.05rem;
 }
 
-.confetti-layer {
-position: fixed;
-inset: 0;
-pointer-events: none;
-overflow: hidden;
-z-index: 50;
-}
+      .confetti-layer {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 50;
+      }
 
-.confetti-piece {
-position: absolute;
-top: -20px;
-width: 12px;
-height: 20px;
-border-radius: 3px;
-opacity: 0.9;
-animation: confetti-fall 4200ms ease-in forwards;
-}
+      .confetti-piece {
+        position: absolute;
+        top: -20px;
+        width: 12px;
+        height: 20px;
+        border-radius: 3px;
+        opacity: 0.9;
+        animation: confetti-fall 4200ms ease-in forwards;
+      }
 
-@keyframes confetti-fall {
-0% {
-transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
-opacity: 1;
-}
-100% {
-transform: translate3d(var(--dx), 118vh, 0) rotateZ(720deg) scale(0.8);
-opacity: 0;
-}
-}
+      @keyframes confetti-fall {
+        0% {
+          transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translate3d(var(--dx), 118vh, 0) rotateZ(720deg) scale(0.8);
+          opacity: 0;
+        }
+      }
 
 @media (max-width: 900px) {
 .board {
@@ -540,7 +540,7 @@ width: 100%;
 <header class="topbar">
 <div class="title-wrap">
 <h1 class="title">RegensPurge</h1>
-          <p class="subtitle">Missionen, Punkte & Abenteuer</p>
+<p class="subtitle">Missionen, Punkte & Abenteuer</p>
 </div>
 
 <div class="player-panel">
@@ -556,10 +556,10 @@ Spielername
 </div>
 </header>
 
-      <section class="leaderboard-panel">
-        <h2 class="leaderboard-title">Bestenliste</h2>
-        <ol id="leaderboardList" class="leaderboard-list"></ol>
-      </section>
+<section class="leaderboard-panel">
+<h2 class="leaderboard-title">Bestenliste</h2>
+<ol id="leaderboardList" class="leaderboard-list"></ol>
+</section>
 
 <main id="board" class="board" aria-live="polite"></main>
 
@@ -590,25 +590,25 @@ Punkte selbst eintragen
 </div>
 
 <div id="toast" class="toast" aria-live="polite"></div>
-<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+    <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
-        authDomain: "regenspurge.firebaseapp.com",
-        databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "regenspurge",
-        storageBucket: "regenspurge.firebasestorage.app",
-        messagingSenderId: "706439523349",
-        appId: "1:706439523349:web:0db0ac82a9241ee184321c",
-        measurementId: "G-K758M4BMPZ"
-      };
+const firebaseConfig = {
+apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
+authDomain: "regenspurge.firebaseapp.com",
+databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",
+projectId: "regenspurge",
+storageBucket: "regenspurge.firebasestorage.app",
+messagingSenderId: "706439523349",
+appId: "1:706439523349:web:0db0ac82a9241ee184321c",
+measurementId: "G-K758M4BMPZ"
+};
 
-      const app = initializeApp(firebaseConfig);
-      const db = getDatabase(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 const tasks = [
 { id: 1, title: 'Stadt-Check', image: 'card-small(1).png', points: 20, customPoints: false },
@@ -632,10 +632,10 @@ const confirmText = document.getElementById('confirmText');
 const customPointsWrap = document.getElementById('customPointsWrap');
 const customPointsInput = document.getElementById('customPointsInput');
 const toast = document.getElementById('toast');
-const confettiLayer = document.getElementById('confettiLayer');
+      const confettiLayer = document.getElementById('confettiLayer');
 const finishScreen = document.getElementById('finishScreen');
 const finishSummary = document.getElementById('finishSummary');
-      const leaderboardList = document.getElementById('leaderboardList');
+const leaderboardList = document.getElementById('leaderboardList');
 
 let remainingTasks = [];
 let activeTasks = [];
@@ -643,55 +643,56 @@ let score = 0;
 let pendingTaskId = null;
 let gameStarted = false;
 
-      function normalizePlayerName() {
-        return (playerNameInput.value || 'Spieler').trim().slice(0, 22) || 'Spieler';
-      }
+function normalizePlayerName() {
+return (playerNameInput.value || 'Spieler').trim().slice(0, 22) || 'Spieler';
+}
 
-      function makePlayerKey(name) {
-        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'spieler';
-      }
+function makePlayerKey(name) {
+return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'spieler';
+}
 
-      function saveScoreToFirebase() {
-        const name = normalizePlayerName();
-        const key = makePlayerKey(name);
-        set(ref(db, `leaderboard/${key}`), {
-          name,
-          score,
-          updatedAt: Date.now()
-        }).catch(() => {
+function saveScoreToFirebase() {
+const name = normalizePlayerName();
+const key = makePlayerKey(name);
+set(ref(db, `leaderboard/${key}`), {
+name,
+score,
+updatedAt: Date.now()
+}).catch(() => {
           // silently fail for local play if Firebase is unavailable
-        });
-      }
+          // silent fail if Firebase is unavailable
+});
+}
 
-      function renderLeaderboard(entries) {
-        if (!entries.length) {
-          leaderboardList.innerHTML = '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
-          return;
-        }
+function renderLeaderboard(entries) {
+if (!entries.length) {
+leaderboardList.innerHTML = '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+return;
+}
 
-        leaderboardList.innerHTML = entries
-          .slice(0, 5)
-          .map((entry, index) => `
-            <li class="leaderboard-item">
-              <span class="leaderboard-name">${index + 1}. ${entry.name}</span>
-              <span class="leaderboard-score">${entry.score}</span>
-            </li>
-          `)
-          .join('');
-      }
+leaderboardList.innerHTML = entries
+.slice(0, 5)
+.map((entry, index) => `
+           <li class="leaderboard-item">
+             <span class="leaderboard-name">${index + 1}. ${entry.name}</span>
+             <span class="leaderboard-score">${entry.score}</span>
+           </li>
+         `)
+.join('');
+}
 
-      function subscribeToLeaderboard() {
-        const leaderboardRef = ref(db, 'leaderboard');
-        onValue(leaderboardRef, (snapshot) => {
-          const data = snapshot.val() || {};
-          const entries = Object.values(data)
-            .filter((entry) => entry && typeof entry.score === 'number')
-            .sort((a, b) => b.score - a.score);
-          renderLeaderboard(entries);
-        }, () => {
-          renderLeaderboard([]);
-        });
-      }
+function subscribeToLeaderboard() {
+const leaderboardRef = ref(db, 'leaderboard');
+onValue(leaderboardRef, (snapshot) => {
+const data = snapshot.val() || {};
+const entries = Object.values(data)
+.filter((entry) => entry && typeof entry.score === 'number')
+.sort((a, b) => b.score - a.score);
+renderLeaderboard(entries);
+}, () => {
+renderLeaderboard([]);
+});
+}
 
 function shuffleArray(array) {
 const copy = [...array];
@@ -726,22 +727,22 @@ toast.classList.remove('show');
 }, 1800);
 }
 
-function createConfettiBurst() {
-const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
+      function createConfettiBurst() {
+        const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
 
-for (let i = 0; i < 2200; i += 1) {
-const piece = document.createElement('span');
-piece.className = 'confetti-piece';
-piece.style.left = `${Math.random() * 100}%`;
-piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
-confettiLayer.appendChild(piece);
+        for (let i = 0; i < 2200; i += 1) {
+          const piece = document.createElement('span');
+          piece.className = 'confetti-piece';
+          piece.style.left = `${Math.random() * 100}%`;
+          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
+          confettiLayer.appendChild(piece);
 
-setTimeout(() => {
-piece.remove();
-}, 5000);
-}
-}
+          setTimeout(() => {
+            piece.remove();
+          }, 5000);
+        }
+      }
 
 function openConfirm(taskId) {
 const selectedTask = activeTasks.find((task) => task.id === taskId);
@@ -789,9 +790,9 @@ task.status = 'done';
 task.pointsAwarded = pointsToAward;
 score += pointsToAward;
 updateScore();
-        saveScoreToFirebase();
+saveScoreToFirebase();
 
-createConfettiBurst();
+        createConfettiBurst();
 showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
 
 activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
@@ -824,10 +825,9 @@ renderBoard();
 
 if (activeTasks.length === 0 && remainingTasks.length === 0 && gameStarted) {
 finishScreen.classList.add('show');
-          finishSummary.textContent = `${playerNameInput.value.trim() || 'Spieler'}, du hast insgesamt ${score} Punkte gesammelt.`;
-          finishSummary.textContent = `${normalizePlayerName()}, du hast insgesamt ${score} Punkte gesammelt.`;
+finishSummary.textContent = `${normalizePlayerName()}, du hast insgesamt ${score} Punkte gesammelt.`;
 gameStarted = false;
-          saveScoreToFirebase();
+saveScoreToFirebase();
 }
 }
 
@@ -868,7 +868,6 @@ remainingTasks = shuffleArray(tasks);
 activeTasks = [];
 gameStarted = true;
 finishScreen.classList.remove('show');
-
 refillBoard();
 }
 
@@ -886,12 +885,11 @@ renderBoard();
 }
 
 playerNameInput.addEventListener('input', () => {
-        if (!gameStarted) return;
-        const safeName = normalizePlayerName();
+const safeName = normalizePlayerName();
 document.title = `${safeName} | RegensPurge`;
-        if (gameStarted) {
-          saveScoreToFirebase();
-        }
+if (gameStarted) {
+saveScoreToFirebase();
+}
 });
 
 board.addEventListener('click', (event) => {
@@ -911,7 +909,7 @@ closeConfirm();
 }
 });
 
-      subscribeToLeaderboard();
+subscribeToLeaderboard();
 startGame();
 setInterval(tickTimers, 1000);
 </script>
