@@ -123,14 +123,37 @@ h1, h2 {
 .round-summary {
     width: min(540px, 100%);
     margin: 0 auto 22px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.88);
+    padding: 12px 16px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.9);
     border: 1px solid rgba(148, 163, 184, 0.5);
-    text-align: center;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.round-summary .label {
+    display: block;
+    margin-bottom: 8px;
     font-weight: 700;
     color: #0f172a;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    text-align: center;
+}
+
+.progress-track {
+    width: 100%;
+    height: 16px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.25);
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+.progress-fill {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    transition: width 0.35s ease;
 }
 
 .board-shell {
@@ -306,7 +329,12 @@ h1, h2 {
         <button onclick="resetGameBoard()">Neues Spiel starten</button>
     </div>
 
-    <div id="roundSummary" class="round-summary">Aufgaben: 0/11 erledigt</div>
+    <div id="roundSummary" class="round-summary">
+        <span class="label">Fortschritt</span>
+        <div class="progress-track" aria-label="Fortschritt der Runde">
+            <span id="progressFill" class="progress-fill"></span>
+        </div>
+    </div>
 
     <div class="board-shell">
         <div id="gameArea"></div>
@@ -377,11 +405,17 @@ function hideStatus() {
 }
 
 function updateRoundSummary() {
-    const summary = document.getElementById("roundSummary");
-    if (!summary) return;
+    const progressFill = document.getElementById("progressFill");
+    if (!progressFill) return;
 
     const doneCount = completedTaskImages.length;
-    summary.textContent = `Aufgaben: ${doneCount}/${tasks.length} erledigt`;
+    const percent = Math.min((doneCount / tasks.length) * 100, 100);
+    progressFill.style.width = `${percent}%`;
+
+    const summaryText = document.querySelector(".round-summary .label");
+    if (summaryText) {
+        summaryText.textContent = `Fortschritt: ${doneCount}/${tasks.length} erledigt`;
+    }
 }
 
 function initFirebase() {
