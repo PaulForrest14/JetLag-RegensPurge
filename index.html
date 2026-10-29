@@ -596,7 +596,7 @@
       return {
         ...task,
         id: `task-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-        timeLimit: 20,
+        timeLimit: 900,
         expiresAt: Date.now() + 20 * 1000,
         completedBy: null,
         completedAt: null
