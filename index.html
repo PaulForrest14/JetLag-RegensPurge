@@ -146,6 +146,55 @@
         font-weight: 900;
       }
 
+      .leaderboard-panel {
+        margin-top: 18px;
+        background: rgba(57, 44, 33, 0.72);
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        border-radius: 24px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .leaderboard-title {
+        margin: 0 0 12px;
+        font-size: 0.8rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .leaderboard-list {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        padding: 0;
+        margin: 0;
+      }
+
+      .leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 243, 222, 0.08);
+      }
+
+      .leaderboard-name {
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .leaderboard-score {
+        color: var(--gold-soft);
+        font-weight: 900;
+      }
+
       .board {
         display: grid;
         grid-template-columns: repeat(3, minmax(240px, 1fr));
@@ -491,6 +540,7 @@
       <header class="topbar">
         <div class="title-wrap">
           <h1 class="title">RegensPurge</h1>
+          <p class="subtitle">Missionen, Punkte & Abenteuer</p>
         </div>
 
         <div class="player-panel">
@@ -505,6 +555,11 @@
           </div>
         </div>
       </header>
+
+      <section class="leaderboard-panel">
+        <h2 class="leaderboard-title">Bestenliste</h2>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+      </section>
 
       <main id="board" class="board" aria-live="polite"></main>
 
@@ -537,7 +592,24 @@
     <div id="toast" class="toast" aria-live="polite"></div>
     <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-    <script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
+        authDomain: "regenspurge.firebaseapp.com",
+        databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "regenspurge",
+        storageBucket: "regenspurge.firebasestorage.app",
+        messagingSenderId: "706439523349",
+        appId: "1:706439523349:web:0db0ac82a9241ee184321c",
+        measurementId: "G-K758M4BMPZ"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
       const tasks = [
         { id: 1, title: 'Stadt-Check', image: 'card-small(1).png', points: 20, customPoints: false },
         { id: 2, title: 'Kaffeepause', image: 'card-small (2).png', points: 25, customPoints: false },
@@ -563,12 +635,63 @@
       const confettiLayer = document.getElementById('confettiLayer');
       const finishScreen = document.getElementById('finishScreen');
       const finishSummary = document.getElementById('finishSummary');
+      const leaderboardList = document.getElementById('leaderboardList');
 
       let remainingTasks = [];
       let activeTasks = [];
       let score = 0;
       let pendingTaskId = null;
       let gameStarted = false;
+
+      function normalizePlayerName() {
+        return (playerNameInput.value || 'Spieler').trim().slice(0, 22) || 'Spieler';
+      }
+
+      function makePlayerKey(name) {
+        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'spieler';
+      }
+
+      function saveScoreToFirebase() {
+        const name = normalizePlayerName();
+        const key = makePlayerKey(name);
+        set(ref(db, `leaderboard/${key}`), {
+          name,
+          score,
+          updatedAt: Date.now()
+        }).catch(() => {
+          // silently fail for local play if Firebase is unavailable
+        });
+      }
+
+      function renderLeaderboard(entries) {
+        if (!entries.length) {
+          leaderboardList.innerHTML = '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+          return;
+        }
+
+        leaderboardList.innerHTML = entries
+          .slice(0, 5)
+          .map((entry, index) => `
+            <li class="leaderboard-item">
+              <span class="leaderboard-name">${index + 1}. ${entry.name}</span>
+              <span class="leaderboard-score">${entry.score}</span>
+            </li>
+          `)
+          .join('');
+      }
+
+      function subscribeToLeaderboard() {
+        const leaderboardRef = ref(db, 'leaderboard');
+        onValue(leaderboardRef, (snapshot) => {
+          const data = snapshot.val() || {};
+          const entries = Object.values(data)
+            .filter((entry) => entry && typeof entry.score === 'number')
+            .sort((a, b) => b.score - a.score);
+          renderLeaderboard(entries);
+        }, () => {
+          renderLeaderboard([]);
+        });
+      }
 
       function shuffleArray(array) {
         const copy = [...array];
@@ -666,6 +789,7 @@
         task.pointsAwarded = pointsToAward;
         score += pointsToAward;
         updateScore();
+        saveScoreToFirebase();
 
         createConfettiBurst();
         showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
@@ -700,8 +824,9 @@
 
         if (activeTasks.length === 0 && remainingTasks.length === 0 && gameStarted) {
           finishScreen.classList.add('show');
-          finishSummary.textContent = `${playerNameInput.value.trim() || 'Spieler'}, du hast insgesamt ${score} Punkte gesammelt.`;
+          finishSummary.textContent = `${normalizePlayerName()}, du hast insgesamt ${score} Punkte gesammelt.`;
           gameStarted = false;
+          saveScoreToFirebase();
         }
       }
 
@@ -742,7 +867,6 @@
         activeTasks = [];
         gameStarted = true;
         finishScreen.classList.remove('show');
-
         refillBoard();
       }
 
@@ -760,9 +884,11 @@
       }
 
       playerNameInput.addEventListener('input', () => {
-        if (!gameStarted) return;
-        const safeName = playerNameInput.value.trim() || 'Spieler';
+        const safeName = normalizePlayerName();
         document.title = `${safeName} | RegensPurge`;
+        if (gameStarted) {
+          saveScoreToFirebase();
+        }
       });
 
       board.addEventListener('click', (event) => {
@@ -782,6 +908,7 @@
         }
       });
 
+      subscribeToLeaderboard();
       startGame();
       setInterval(tickTimers, 1000);
     </script>
