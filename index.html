@@ -405,7 +405,6 @@ const tasks = [
     { image: "images/card-small (11).png", points: 55 }
 ];
 
-const taskTimeOptions = [20];
 const firebaseConfig = {
   apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
   authDomain: "regenspurge.firebaseapp.com",
@@ -427,6 +426,7 @@ let currentPlayer = localStorage.getItem("jetlag-player-name") || "";
 let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
 let roomId = localStorage.getItem("jetlag-room-id") || "";
 let timerLoop = null;
+let localMode = false;
 
 function generateRoomId() {
     return `ROOM-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -552,29 +552,6 @@ function initFirebase() {
     }
 }
 
-function buildTaskMap(taskList) {
-    const result = {};
-    taskList.forEach((task, index) => {
-        const id = task.id || `task-${index}`;
-        result[id] = {
-            id,
-            image: task.image,
-            points: Number(task.points || 0),
-            customPoints: !!task.customPoints,
-            timeLimit: task.timeLimit || 20,
-            expiresAt: task.expiresAt || Date.now() + 20 * 1000,
-            completedBy: task.completedBy || null,
-            completedAt: task.completedAt || null
-        };
-    });
-    return result;
-}
-
-function persistLocalState() {
-    saveLocalState();
-    savePlayerMeta();
-}
-
 function makeTaskEntry(task) {
     return {
         ...task,
@@ -587,15 +564,25 @@ function makeTaskEntry(task) {
 }
 
 function createRoomDeck() {
-    return shuffleArray(tasks).slice(0, 3).map((task) => makeTaskEntry(task));
+    return shuffleArray(tasks).slice(0, 3).map(task => makeTaskEntry(task));
+}
+
+function seedLocalRound() {
+    activeImages = createRoomDeck();
+    completedTaskImages = [];
+    persistLocalState();
+    renderBoard();
 }
 
 function generateRoundForRoom() {
-    if (!gameRef || !roomId) return;
+    if (!gameRef || !roomId) {
+        seedLocalRound();
+        return;
+    }
 
     const deck = createRoomDeck();
     const roomTasks = {};
-    deck.forEach((task) => {
+    deck.forEach(task => {
         roomTasks[task.id] = {
             ...task,
             points: Number(task.points || 0),
@@ -605,28 +592,26 @@ function generateRoundForRoom() {
         };
     });
 
-    gameRef.transaction((current) => {
-        const base = current || {};
-        const existingTasks = base.tasks || {};
-        if (Object.keys(existingTasks).length > 0) {
-            return base;
+    const nextPlayers = { ...(roomPlayers || {}) };
+    nextPlayers[playerId] = {
+        ...(nextPlayers[playerId] || {}),
+        name: currentPlayer,
+        score: nextPlayers[playerId]?.score || 0,
+        highscore: nextPlayers[playerId]?.highscore || 0,
+        connected: true
+    };
+
+    roomPlayers = nextPlayers;
+
+    gameRef.set({
+        players: roomPlayers,
+        tasks: roomTasks
+    }).then(() => {
+        if (gameRef) {
+            showStatus("Raum wieder gestartet.");
         }
-
-        const nextPlayers = { ...(base.players || {}) };
-        nextPlayers[playerId] = {
-            ...(nextPlayers[playerId] || {}),
-            name: currentPlayer,
-            score: nextPlayers[playerId]?.score || 0,
-            highscore: nextPlayers[playerId]?.highscore || 0,
-            connected: true
-        };
-
-        return {
-            ...base,
-            players: nextPlayers,
-            tasks: roomTasks,
-            roomOwner: playerId
-        };
+    }).catch(() => {
+        seedLocalRound();
     });
 }
 
@@ -639,9 +624,12 @@ function generateRound() {
         return;
     }
 
-    activeImages = createRoomDeck();
-    persistLocalState();
-    renderBoard();
+    if (roomId && !gameRef) {
+        seedLocalRound();
+        return;
+    }
+
+    seedLocalRound();
 }
 
 function startNewRound() {
@@ -858,9 +846,9 @@ function refreshExpiredTasks() {
     if (!expired.length) return;
 
     if (roomId && gameRef) {
-        expired.forEach((task) => {
+        expired.forEach(task => {
             if (!task.id) return;
-            gameRef.child("tasks").child(task.id).transaction((currentTask) => {
+            gameRef.child("tasks").child(task.id).transaction(currentTask => {
                 if (!currentTask) return currentTask;
                 if (currentTask.completedBy) return currentTask;
                 return {
@@ -894,10 +882,13 @@ function startTimerLoop() {
 function connectToRoom() {
     if (!roomId) return;
     if (!db && !initFirebase()) {
+        localMode = true;
         showStatus("Firebase ist nicht aktiv. Das Spiel läuft lokal weiter.");
+        generateRound();
         return;
     }
 
+    localMode = false;
     gameRef = db.ref(`rooms/${roomId}`);
     gameRef.on("value", (snapshot) => {
         const data = snapshot.val() || {};
@@ -914,6 +905,10 @@ function connectToRoom() {
         }
 
         if (!tasksList.length) {
+            const fallbackDeck = createRoomDeck();
+            activeImages = fallbackDeck;
+            completedTaskImages = [];
+            renderBoard();
             generateRoundForRoom();
             return;
         }
@@ -952,13 +947,9 @@ function joinOrCreateRoom() {
         initFirebase();
         connectToRoom();
     } else {
+        localMode = true;
         showStatus("Firebase nicht aktiv. Spiel läuft lokal.");
-        if (activeImages.length === 0 && completedTaskImages.length === 0) {
-            generateRound();
-        } else {
-            ensureTaskDeck();
-            renderBoard();
-        }
+        generateRound();
     }
 }
 
@@ -979,6 +970,7 @@ function bindUI() {
 function init() {
     loadLocalState();
     bindUI();
+
     if (!currentPlayer) {
         const savedName = localStorage.getItem("jetlag-player-name");
         if (savedName) currentPlayer = savedName;
@@ -990,14 +982,7 @@ function init() {
         initFirebase();
         connectToRoom();
     } else {
-        if (activeImages.length === 0 && completedTaskImages.length === 0) {
-            // start local mode only if no room is joined yet
-            updatePlayerDisplay();
-            updateLeaderboard();
-        } else {
-            ensureTaskDeck();
-            renderBoard();
-        }
+        seedLocalRound();
     }
 
     updatePlayerDisplay();
