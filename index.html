@@ -536,7 +536,6 @@ function updateRoundSummary() {
 
 function startTaskTimerLoop() {
     if (timerLoop) return;
-
     timerLoop = window.setInterval(() => {
         refreshExpiredTasks();
         render();
@@ -572,14 +571,13 @@ function spawnConfetti() {
 }
 
 function initFirebase() {
-    if (!isFirebaseConfigured) {
-        showStatus("Firebase-Projekt RegensPurge erkannt. Für echten Mehrgeräte-Stand bitte in firebaseConfig die API-Key, Messaging-Sender-ID und App-ID aus der Firebase-Konsole eintragen.");
+    if (!isFirebaseConfigured || !window.firebase) {
         return false;
     }
 
     try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
+        window.firebase.initializeApp(firebaseConfig);
+        db = window.firebase.database();
         return true;
     } catch (error) {
         console.error("Firebase init error:", error);
@@ -645,8 +643,10 @@ function joinOrCreateRoom() {
     document.getElementById("roomCode").value = roomId;
 
     if (!db) {
-        alert("Firebase ist nicht aktiv. Bitte Firebase-Konfiguration prüfen.");
-        return;
+        if (!initFirebase()) {
+            alert("Firebase ist nicht aktiv. Bitte Firebase-Konfiguration prüfen.");
+            return;
+        }
     }
 
     gameRef = db.ref(`rooms/${roomId}`);
@@ -660,8 +660,8 @@ function connectToRoom() {
         const data = snapshot.val() || {};
         roomPlayers = data.players || {};
         const roomTasks = data.tasks || {};
-
         const taskList = Object.values(roomTasks);
+
         activeImages = taskList.filter(task => !task.completedBy);
         completedTaskImages = taskList.filter(task => task.completedBy).map(task => task.image);
 
@@ -684,17 +684,12 @@ function connectToRoom() {
         updateLeaderboard();
     });
 
-    const playerRef = gameRef.child("players").child(playerId);
-    playerRef.set({
+    gameRef.child("players").child(playerId).set({
         name: currentPlayer,
         score: 0,
         highscore: 0,
         connected: true
     });
-
-    if (Object.keys(roomPlayers).length === 0 && (!gameRef || !roomId)) {
-        resetRoomTasks();
-    }
 
     updatePlayerDisplay();
     updateLeaderboard();
@@ -725,16 +720,16 @@ function resetRoomTasks() {
 }
 
 function initializeSharedState() {
+    const saved = getLocalState();
+    players = saved.players || {};
+    activeImages = saved.activeImages || [];
+    completedTaskImages = saved.completedTaskImages || [];
+
     if (roomId && db) {
         gameRef = db.ref(`rooms/${roomId}`);
         connectToRoom();
         return;
     }
-
-    const saved = getLocalState();
-    players = saved.players || {};
-    activeImages = saved.activeImages || [];
-    completedTaskImages = saved.completedTaskImages || [];
 
     if (activeImages.length === 0 && completedTaskImages.length === 0) {
         initializeGame();
@@ -788,11 +783,9 @@ function updatePlayerDisplay() {
     if (!currentPlayer) return;
 
     document.getElementById("activePlayer").textContent = currentPlayer;
-
     const stats = getCurrentPlayerStats();
     document.getElementById("score").textContent = stats.score ?? 0;
     document.getElementById("highscore").textContent = stats.highscore ?? 0;
-
     updateLeaderboard();
 }
 
@@ -802,9 +795,10 @@ function updateLeaderboard() {
 
     const source = roomId ? Object.entries(roomPlayers) : Object.entries(players);
     const ranking = source.sort((a, b) => (b[1].highscore ?? 0) - (a[1].highscore ?? 0));
+
     ranking.forEach(([name, data]) => {
         const li = document.createElement("li");
-        const label = roomId && name === playerId ? currentPlayer : data.name || name;
+        const label = roomId && name === playerId ? currentPlayer : (data.name || name);
         li.textContent = `${label}: ${data.highscore ?? 0} Punkte`;
         list.appendChild(li);
     });
@@ -837,7 +831,6 @@ function updateScore(points) {
     }
 
     players[currentPlayer].score += points;
-
     if (players[currentPlayer].score > players[currentPlayer].highscore) {
         players[currentPlayer].highscore = players[currentPlayer].score;
     }
@@ -904,6 +897,7 @@ function getRandomTask() {
 function startNewRound() {
     activeImages = [];
     completedTaskImages = [];
+    animationIndex = null;
 
     if (roomId && gameRef) {
         resetRoomTasks();
@@ -998,3 +992,140 @@ function getCustomTaskPoints(task) {
 
 function completeTask(index) {
     if (!currentPlayer) {
+        alert("Bitte zuerst einen Spieler auswählen.");
+        return;
+    }
+
+    const task = activeImages[index];
+    if (!task) return;
+
+    const points = task.customPoints ? getCustomTaskPoints(task) : task.points;
+    if (points === null) return;
+
+    if (roomId && gameRef) {
+        gameRef.child("tasks").once("value", (snapshot) => {
+            const tasksMap = snapshot.val() || {};
+            const taskId = Object.keys(tasksMap).find((key) => {
+                const value = tasksMap[key];
+                return value && value.image === task.image && !value.completedBy;
+            });
+
+            if (!taskId) return;
+
+            tasksMap[taskId].completedBy = playerId;
+            tasksMap[taskId].completedAt = Date.now();
+            tasksMap[taskId].points = points;
+            gameRef.child("tasks").set(tasksMap);
+        });
+    }
+
+    if (!roomId || !gameRef) {
+        if (!completedTaskImages.includes(task.image)) {
+            completedTaskImages.push(task.image);
+        }
+        activeImages.splice(index, 1);
+        const replacement = getRandomTask();
+        if (replacement) activeImages.push(replacement);
+        persistState();
+    }
+
+    updateScore(points);
+    triggerScreenFlash(points);
+    spawnConfetti();
+    animationIndex = index;
+    render();
+
+    const allDone = completedTaskImages.length >= tasks.length;
+    if (allDone) {
+        showStatus("Alle Aufgaben erledigt! Starte eine neue Runde.");
+    }
+
+    window.setTimeout(() => {
+        animationIndex = null;
+        render();
+    }, 700);
+}
+
+function formatCountdown(totalSeconds) {
+    const safeSeconds = Math.max(0, totalSeconds);
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function render() {
+    const gameArea = document.getElementById("gameArea");
+    gameArea.innerHTML = "";
+    updateRoundSummary();
+
+    if (activeImages.length === 0) {
+        showStatus("Alle Aufgaben erledigt! Starte eine neue Runde.");
+    }
+
+    activeImages.forEach((task, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        if (animationIndex === index) {
+            card.classList.add("task-completed");
+        }
+
+        const remainingSeconds = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
+        const timerClass = remainingSeconds <= 10 ? "task-timer warning" : "task-timer";
+        const buttonText = task.customPoints ? `Erledigt (${task.points} Pkt.)` : `${task.points} Punkte`;
+
+        card.innerHTML = `
+            <img src="${task.image}" alt="Aufgabe" onclick="openImageModal('${task.image}')">
+            <div class="${timerClass}">⏱️ ${formatCountdown(remainingSeconds)}</div>
+            <button onclick="completeTask(${index})">${buttonText}</button>
+        `;
+
+        gameArea.appendChild(card);
+    });
+}
+
+window.addEventListener("beforeunload", () => {
+    if (roomId && gameRef && currentPlayer) {
+        gameRef.child("players").child(playerId).update({ connected: false });
+    }
+});
+
+const existingName = localStorage.getItem("jetlag-player-name");
+if (existingName) {
+    document.getElementById("playerName").value = existingName;
+    currentPlayer = existingName;
+}
+
+if (roomId) {
+    document.getElementById("roomCode").value = roomId;
+}
+
+if (window.firebase) {
+    initFirebase();
+}
+
+initializeSharedState();
+startTaskTimerLoop();
+updateLeaderboard();
+
+window.joinOrCreateRoom = joinOrCreateRoom;
+window.resetScore = resetScore;
+window.resetGameBoard = resetGameBoard;
+window.openImageModal = openImageModal;
+window.closeImageModal = closeImageModal;
+window.completeTask = completeTask;
+
+const savedName = document.getElementById("playerName").value.trim();
+if (savedName) {
+    localStorage.setItem("jetlag-player-name", savedName);
+    currentPlayer = savedName;
+}
+
+window.addEventListener("beforeunload", () => {
+    const inputName = document.getElementById("playerName").value.trim();
+    if (inputName) {
+        localStorage.setItem("jetlag-player-name", inputName);
+    }
+});
+</script>
+</body>
+</html>
