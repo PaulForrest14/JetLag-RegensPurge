@@ -124,6 +124,36 @@ min-width: 220px;
 outline: none;
 }
 
+.player-confirm-btn,
+.reset-btn {
+border: none;
+border-radius: 12px;
+padding: 11px 14px;
+font-weight: 800;
+font-size: 0.76rem;
+cursor: pointer;
+text-transform: uppercase;
+letter-spacing: 0.05em;
+}
+
+.player-confirm-btn {
+background: rgba(255, 255, 255, 0.08);
+color: var(--text);
+}
+
+.reset-btn {
+background: linear-gradient(135deg, rgba(184, 103, 93, 0.9), rgba(121, 69, 62, 0.9));
+color: #fffaf2;
+box-shadow: 0 10px 18px rgba(166, 95, 84, 0.22);
+}
+
+.player-actions {
+display: flex;
+align-items: end;
+gap: 10px;
+flex-wrap: wrap;
+}
+
 .score-box {
 min-width: 150px;
 background: linear-gradient(135deg, rgba(214, 152, 113, 0.22), rgba(164, 122, 82, 0.22));
@@ -465,34 +495,34 @@ color: var(--muted);
 font-size: 1.05rem;
 }
 
-      .confetti-layer {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 50;
-      }
+.confetti-layer {
+position: fixed;
+inset: 0;
+pointer-events: none;
+overflow: hidden;
+z-index: 50;
+}
 
-      .confetti-piece {
-        position: absolute;
-        top: -20px;
-        width: 12px;
-        height: 20px;
-        border-radius: 3px;
-        opacity: 0.9;
-        animation: confetti-fall 4200ms ease-in forwards;
-      }
+.confetti-piece {
+position: absolute;
+top: -20px;
+width: 12px;
+height: 20px;
+border-radius: 3px;
+opacity: 0.9;
+animation: confetti-fall 4200ms ease-in forwards;
+}
 
-      @keyframes confetti-fall {
-        0% {
-          transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
-          opacity: 1;
-        }
-        100% {
-          transform: translate3d(var(--dx), 118vh, 0) rotateZ(720deg) scale(0.8);
-          opacity: 0;
-        }
-      }
+@keyframes confetti-fall {
+0% {
+transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
+opacity: 1;
+}
+100% {
+transform: translate3d(var(--dx), 118vh, 0) rotateZ(720deg) scale(0.8);
+opacity: 0;
+}
+}
 
 @media (max-width: 900px) {
 .board {
@@ -530,6 +560,15 @@ grid-template-columns: 1fr;
 min-width: 0;
 width: 100%;
 }
+
+.player-actions {
+width: 100%;
+}
+
+.player-confirm-btn,
+.reset-btn {
+width: 100%;
+}
 }
 </style>
 </head>
@@ -544,10 +583,15 @@ width: 100%;
 </div>
 
 <div class="player-panel">
+<div class="player-actions">
 <label class="player-input-wrap">
 Spielername
 <input id="playerNameInput" type="text" value="Spieler" maxlength="22" />
 </label>
+<button id="playerNameConfirmBtn" class="player-confirm-btn" type="button">Bestätigen</button>
+</div>
+
+<button id="resetAllBtn" class="reset-btn" type="button">Daten löschen</button>
 
 <div class="score-box">
 <span class="score-label">Punkte</span>
@@ -590,7 +634,7 @@ Punkte selbst eintragen
 </div>
 
 <div id="toast" class="toast" aria-live="polite"></div>
-    <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
+<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -609,6 +653,7 @@ measurementId: "G-K758M4BMPZ"
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const STORAGE_KEY = 'regenspurge-player-name';
 
 const tasks = [
 { id: 1, title: 'Stadt-Check', image: 'card-small(1).png', points: 20, customPoints: false },
@@ -627,12 +672,14 @@ const tasks = [
 const board = document.getElementById('board');
 const scoreValue = document.getElementById('scoreValue');
 const playerNameInput = document.getElementById('playerNameInput');
+const playerNameConfirmBtn = document.getElementById('playerNameConfirmBtn');
+const resetAllBtn = document.getElementById('resetAllBtn');
 const confirmModal = document.getElementById('confirmModal');
 const confirmText = document.getElementById('confirmText');
 const customPointsWrap = document.getElementById('customPointsWrap');
 const customPointsInput = document.getElementById('customPointsInput');
 const toast = document.getElementById('toast');
-      const confettiLayer = document.getElementById('confettiLayer');
+const confettiLayer = document.getElementById('confettiLayer');
 const finishScreen = document.getElementById('finishScreen');
 const finishSummary = document.getElementById('finishSummary');
 const leaderboardList = document.getElementById('leaderboardList');
@@ -647,6 +694,23 @@ function normalizePlayerName() {
 return (playerNameInput.value || 'Spieler').trim().slice(0, 22) || 'Spieler';
 }
 
+function readStoredPlayerName() {
+try {
+const value = localStorage.getItem(STORAGE_KEY);
+return value ? value.trim().slice(0, 22) || 'Spieler' : 'Spieler';
+} catch {
+return 'Spieler';
+}
+}
+
+function saveStoredPlayerName(name) {
+try {
+localStorage.setItem(STORAGE_KEY, name);
+} catch {
+// ignore localStorage errors
+}
+}
+
 function makePlayerKey(name) {
 return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'spieler';
 }
@@ -659,8 +723,7 @@ name,
 score,
 updatedAt: Date.now()
 }).catch(() => {
-          // silently fail for local play if Firebase is unavailable
-          // silent fail if Firebase is unavailable
+// silently fail for local play if Firebase is unavailable
 });
 }
 
@@ -673,11 +736,11 @@ return;
 leaderboardList.innerHTML = entries
 .slice(0, 5)
 .map((entry, index) => `
-           <li class="leaderboard-item">
-             <span class="leaderboard-name">${index + 1}. ${entry.name}</span>
-             <span class="leaderboard-score">${entry.score}</span>
-           </li>
-         `)
+<li class="leaderboard-item">
+<span class="leaderboard-name">${index + 1}. ${entry.name}</span>
+<span class="leaderboard-score">${entry.score}</span>
+</li>
+`)
 .join('');
 }
 
@@ -727,22 +790,22 @@ toast.classList.remove('show');
 }, 1800);
 }
 
-      function createConfettiBurst() {
-        const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
+function createConfettiBurst() {
+const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
 
-        for (let i = 0; i < 2200; i += 1) {
-          const piece = document.createElement('span');
-          piece.className = 'confetti-piece';
-          piece.style.left = `${Math.random() * 100}%`;
-          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-          piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
-          confettiLayer.appendChild(piece);
+for (let i = 0; i < 2200; i += 1) {
+const piece = document.createElement('span');
+piece.className = 'confetti-piece';
+piece.style.left = `${Math.random() * 100}%`;
+piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+piece.style.setProperty('--dx', `${(Math.random() - 0.5) * 900}px`);
+confettiLayer.appendChild(piece);
 
-          setTimeout(() => {
-            piece.remove();
-          }, 5000);
-        }
-      }
+setTimeout(() => {
+piece.remove();
+}, 5000);
+}
+}
 
 function openConfirm(taskId) {
 const selectedTask = activeTasks.find((task) => task.id === taskId);
@@ -792,7 +855,7 @@ score += pointsToAward;
 updateScore();
 saveScoreToFirebase();
 
-        createConfettiBurst();
+createConfettiBurst();
 showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
 
 activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
@@ -840,23 +903,23 @@ const isWarning = remainingMs <= 60 * 1000 && remainingMs > 30 * 1000;
 const isDanger = remainingMs <= 30 * 1000;
 
 return `
-             <article class="task-card ${task.status === 'expired' ? 'expired' : ''}" data-id="${task.id}">
-               <div class="card-image-wrap">
-                 <img src="${getTaskImageUrl(task.image)}" alt="${task.title}" />
-               </div>
+<article class="task-card ${task.status === 'expired' ? 'expired' : ''}" data-id="${task.id}">
+<div class="card-image-wrap">
+<img src="${getTaskImageUrl(task.image)}" alt="${task.title}" />
+</div>
 
-               <div class="task-body">
-                 <h2 class="task-title">${task.title}</h2>
+<div class="task-body">
+<h2 class="task-title">${task.title}</h2>
 
-                 <div class="task-meta">
-                   <span class="badge">${task.customPoints ? 'Eigenpunkte' : `${task.points} P`}</span>
-                   <span class="timer ${isWarning ? 'warning' : ''} ${isDanger ? 'danger' : ''}">${timeText}</span>
-                 </div>
+<div class="task-meta">
+<span class="badge">${task.customPoints ? 'Eigenpunkte' : `${task.points} P`}</span>
+<span class="timer ${isWarning ? 'warning' : ''} ${isDanger ? 'danger' : ''}">${timeText}</span>
+</div>
 
-                 <button class="task-button" type="button" data-task-id="${task.id}">Aufgabe erledigt</button>
-               </div>
-             </article>
-           `;
+<button class="task-button" type="button" data-task-id="${task.id}">Aufgabe erledigt</button>
+</div>
+</article>
+`;
 })
 .join('');
 }
@@ -884,13 +947,49 @@ expireTask(task.id);
 renderBoard();
 }
 
-playerNameInput.addEventListener('input', () => {
+function confirmPlayerName() {
 const safeName = normalizePlayerName();
+saveStoredPlayerName(safeName);
 document.title = `${safeName} | RegensPurge`;
 if (gameStarted) {
 saveScoreToFirebase();
 }
+showToast(`Spielername gespeichert: ${safeName}`);
+}
+
+function resetAllData() {
+try {
+localStorage.removeItem(STORAGE_KEY);
+} catch {
+// ignore
+}
+
+const allLeaderboardRef = ref(db, 'leaderboard');
+set(allLeaderboardRef, null).catch(() => {
+// ignore reset errors
 });
+
+playerNameInput.value = 'Spieler';
+document.title = 'RegensPurge';
+score = 0;
+updateScore();
+remainingTasks = [];
+activeTasks = [];
+finishScreen.classList.remove('show');
+showToast('Alle Daten gelöscht');
+startGame();
+}
+
+playerNameInput.addEventListener('input', () => {
+const currentValue = playerNameInput.value || '';
+if (!currentValue.trim()) {
+document.title = 'RegensPurge';
+return;
+}
+document.title = `${currentValue.trim().slice(0, 22)} | RegensPurge`;
+});
+
+playerNameConfirmBtn.addEventListener('click', confirmPlayerName);
 
 board.addEventListener('click', (event) => {
 const button = event.target.closest('[data-task-id]');
@@ -902,6 +1001,7 @@ openConfirm(taskId);
 document.getElementById('cancelConfirmBtn').addEventListener('click', closeConfirm);
 document.getElementById('confirmBtn').addEventListener('click', confirmTaskCompletion);
 document.getElementById('newGameBtn').addEventListener('click', startGame);
+resetAllBtn.addEventListener('click', resetAllData);
 
 document.addEventListener('keydown', (event) => {
 if (event.key === 'Escape' && confirmModal.classList.contains('show')) {
@@ -909,6 +1009,9 @@ closeConfirm();
 }
 });
 
+const savedName = readStoredPlayerName();
+playerNameInput.value = savedName;
+document.title = `${savedName} | RegensPurge`;
 subscribeToLeaderboard();
 startGame();
 setInterval(tickTimers, 1000);
