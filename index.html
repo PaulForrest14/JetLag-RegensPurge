@@ -593,10 +593,6 @@ function createRoomDeck() {
 function generateRoundForRoom() {
     if (!gameRef || !roomId) return;
 
-    if (!roomPlayers[playerId]) {
-        roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-    }
-
     const deck = createRoomDeck();
     const roomTasks = {};
     deck.forEach((task) => {
@@ -609,9 +605,28 @@ function generateRoundForRoom() {
         };
     });
 
-    gameRef.set({
-        players: roomPlayers,
-        tasks: roomTasks
+    gameRef.transaction((current) => {
+        const base = current || {};
+        const existingTasks = base.tasks || {};
+        if (Object.keys(existingTasks).length > 0) {
+            return base;
+        }
+
+        const nextPlayers = { ...(base.players || {}) };
+        nextPlayers[playerId] = {
+            ...(nextPlayers[playerId] || {}),
+            name: currentPlayer,
+            score: nextPlayers[playerId]?.score || 0,
+            highscore: nextPlayers[playerId]?.highscore || 0,
+            connected: true
+        };
+
+        return {
+            ...base,
+            players: nextPlayers,
+            tasks: roomTasks,
+            roomOwner: playerId
+        };
     });
 }
 
@@ -971,11 +986,18 @@ function init() {
         if (nameInput) nameInput.value = currentPlayer;
     }
 
-    if (activeImages.length === 0 && completedTaskImages.length === 0) {
-        generateRound();
+    if (roomId) {
+        initFirebase();
+        connectToRoom();
     } else {
-        ensureTaskDeck();
-        renderBoard();
+        if (activeImages.length === 0 && completedTaskImages.length === 0) {
+            // start local mode only if no room is joined yet
+            updatePlayerDisplay();
+            updateLeaderboard();
+        } else {
+            ensureTaskDeck();
+            renderBoard();
+        }
     }
 
     updatePlayerDisplay();
