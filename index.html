@@ -592,7 +592,6 @@ Punkte selbst eintragen
 <div id="toast" class="toast" aria-live="polite"></div>
 <div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
-    <script>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
       import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -888,7 +887,6 @@ renderBoard();
 
 playerNameInput.addEventListener('input', () => {
         if (!gameStarted) return;
-        const safeName = playerNameInput.value.trim() || 'Spieler';
         const safeName = normalizePlayerName();
 document.title = `${safeName} | RegensPurge`;
         if (gameStarted) {
