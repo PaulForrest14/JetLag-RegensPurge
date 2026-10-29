@@ -6,16 +6,8 @@
 <title>Aufgaben-Spiel</title>
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
-html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-}
-
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
 body {
     font-family: Arial, sans-serif;
     min-height: 100vh;
@@ -28,11 +20,7 @@ body {
     background-attachment: fixed;
 }
 
-h1, h2 {
-    text-align: center;
-    margin: 0;
-}
-
+h1, h2 { text-align: center; margin: 0; }
 #app {
     max-width: 1100px;
     margin: 0 auto;
@@ -86,14 +74,9 @@ h1, h2 {
 }
 
 #playerArea button:hover,
-#scoreBoard button:hover {
-    filter: brightness(1.05);
-}
-
+#scoreBoard button:hover { filter: brightness(1.05); }
 #playerArea button:active,
-#scoreBoard button:active {
-    transform: translateY(1px);
-}
+#scoreBoard button:active { transform: translateY(1px); }
 
 #scoreBoard {
     background: rgba(255,255,255,0.92);
@@ -107,17 +90,8 @@ h1, h2 {
     text-align: center;
 }
 
-#scoreBoard .stat {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.score {
-    font-size: 26px;
-    font-weight: 700;
-    color: #0f172a;
-}
-
+#scoreBoard .stat { font-size: 18px; font-weight: 600; }
+.score { font-size: 26px; font-weight: 700; color: #0f172a; }
 #scoreBoard button {
     background: linear-gradient(135deg, #64748b, #475569);
     color: white;
@@ -207,10 +181,7 @@ h1, h2 {
     color: #0f172a;
 }
 
-.task-timer.warning {
-    color: #dc2626;
-}
-
+.task-timer.warning { color: #dc2626; }
 .card button {
     width: 100%;
     border: none;
@@ -221,14 +192,8 @@ h1, h2 {
     color: white;
     cursor: pointer;
 }
-
-.card button:hover {
-    background: linear-gradient(135deg, #16a34a, #15803d);
-}
-
-.card.task-completed {
-    animation: pulseDone 0.7s ease;
-}
+.card button:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
+.card.task-completed { animation: pulseDone 0.7s ease; }
 
 @keyframes pulseDone {
     0% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
@@ -245,21 +210,13 @@ h1, h2 {
     margin: 24px auto 0;
 }
 
-#leaderboard ul {
-    list-style: none;
-    padding: 0;
-    margin: 14px 0 0;
-}
-
+#leaderboard ul { list-style: none; padding: 0; margin: 14px 0 0; }
 #leaderboard li {
     padding: 10px 6px;
     border-bottom: 1px solid #e2e8f0;
     font-weight: bold;
 }
-
-#leaderboard li:last-child {
-    border-bottom: none;
-}
+#leaderboard li:last-child { border-bottom: none; }
 
 .modal {
     display: none;
@@ -271,11 +228,7 @@ h1, h2 {
     align-items: center;
     padding: 18px;
 }
-
-.modal.show {
-    display: flex;
-}
-
+.modal.show { display: flex; }
 .modal-content {
     position: relative;
     background: rgba(255,255,255,0.97);
@@ -285,7 +238,6 @@ h1, h2 {
     max-width: 90vw;
     max-height: 88vh;
 }
-
 .modal-content img {
     display: block;
     max-width: 90vw;
@@ -293,7 +245,6 @@ h1, h2 {
     object-fit: contain;
     border-radius: 10px;
 }
-
 .close-btn {
     position: absolute;
     top: 14px;
@@ -318,10 +269,7 @@ h1, h2 {
     text-align: center;
     font-weight: 600;
 }
-
-#statusBanner.visible {
-    display: block;
-}
+#statusBanner.visible { display: block; }
 
 #screenFlash {
     position: fixed;
@@ -334,11 +282,7 @@ h1, h2 {
     opacity: 0;
     background: radial-gradient(circle, rgba(255,255,255,0.72) 0%, rgba(34,197,94,0.28) 24%, rgba(0,0,0,0.34) 100%);
 }
-
-#screenFlash.show {
-    animation: screenFlash 0.8s ease forwards;
-}
-
+#screenFlash.show { animation: screenFlash 0.8s ease forwards; }
 #screenFlashText {
     padding: 18px 26px;
     border-radius: 18px;
@@ -360,7 +304,6 @@ h1, h2 {
     pointer-events: none;
     z-index: 2500;
 }
-
 .confetti-piece {
     position: absolute;
     top: -10vh;
@@ -372,33 +315,15 @@ h1, h2 {
 }
 
 @keyframes screenFlash {
-    0% {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-    12% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    45% {
-        opacity: 1;
-        transform: scale(1.03);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(1.1);
-    }
+    0% { opacity: 0; transform: scale(0.9); }
+    12% { opacity: 1; transform: scale(1); }
+    45% { opacity: 1; transform: scale(1.03); }
+    100% { opacity: 0; transform: scale(1.1); }
 }
 
 @keyframes confettiFall {
-    0% {
-        transform: translate3d(0, 0, 0) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translate3d(var(--dx), 115vh, 0) rotate(720deg);
-        opacity: 0;
-    }
+    0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: translate3d(var(--dx), 115vh, 0) rotate(720deg); opacity: 0; }
 }
 </style>
 </head>
@@ -413,7 +338,7 @@ h1, h2 {
         <div id="playerArea">
             <input type="text" id="playerName" placeholder="Spielername">
             <input type="text" id="roomCode" placeholder="Raumcode">
-            <button onclick="joinOrCreateRoom()">Raum betreten</button>
+            <button id="joinRoomBtn">Raum betreten</button>
         </div>
     </div>
 
@@ -421,8 +346,8 @@ h1, h2 {
         <div class="stat">Spieler: <strong id="activePlayer">-</strong></div>
         <div class="stat score">Punkte: <span id="score">0</span></div>
         <div class="stat">Highscore: <span id="highscore">0</span></div>
-        <button onclick="resetScore()">Punktestand zurücksetzen</button>
-        <button onclick="resetGameBoard()">Neues Spiel starten</button>
+        <button id="resetScoreBtn">Punktestand zurücksetzen</button>
+        <button id="newRoundBtn">Neues Spiel starten</button>
     </div>
 
     <div id="roundSummary" class="round-summary">
@@ -448,9 +373,9 @@ h1, h2 {
 
 <div id="confettiLayer" aria-hidden="true"></div>
 
-<div id="imageModal" class="modal" onclick="closeImageModal()">
-    <span class="close-btn" onclick="closeImageModal()">&times;</span>
-    <div class="modal-content" onclick="event.stopPropagation()">
+<div id="imageModal" class="modal">
+    <span class="close-btn" id="closeModalBtn">&times;</span>
+    <div class="modal-content">
         <img id="modalImage" src="" alt="Vergrößerte Aufgabe">
     </div>
 </div>
@@ -473,7 +398,6 @@ const tasks = [
 ];
 
 const taskTimeOptions = [20];
-
 const firebaseConfig = {
   apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
   authDomain: "regenspurge.firebaseapp.com",
@@ -485,18 +409,15 @@ const firebaseConfig = {
   measurementId: "G-K758M4BMPZ"
 };
 
-const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.databaseURL && firebaseConfig.projectId);
-
 let db = null;
 let gameRef = null;
 let players = {};
 let roomPlayers = {};
-let currentPlayer = "";
-let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
-let roomId = localStorage.getItem("jetlag-room-id") || "";
 let activeImages = [];
 let completedTaskImages = [];
-let animationIndex = null;
+let currentPlayer = localStorage.getItem("jetlag-player-name") || "";
+let playerId = localStorage.getItem("jetlag-player-id") || `player-${Math.random().toString(36).slice(2, 10)}`;
+let roomId = localStorage.getItem("jetlag-room-id") || "";
 let timerLoop = null;
 
 function generateRoomId() {
@@ -519,84 +440,16 @@ function hideStatus() {
     banner.textContent = "";
 }
 
-function updateRoundSummary() {
-    const progressFill = document.getElementById("progressFill");
-    if (!progressFill) return;
-
-    const doneCount = completedTaskImages.length;
-    const percent = Math.min((doneCount / tasks.length) * 100, 100);
-    progressFill.style.width = `${percent}%`;
-
-    const summaryText = document.querySelector(".round-summary .label");
-    if (summaryText) {
-        summaryText.textContent = `Fortschritt: ${doneCount}/${tasks.length} erledigt`;
-    }
-}
-
-function startTaskTimerLoop() {
-    if (timerLoop) return;
-    timerLoop = window.setInterval(() => {
-        refreshExpiredTasks();
-        render();
-    }, 1000);
-}
-
-function triggerScreenFlash(points) {
-    const flash = document.getElementById("screenFlash");
-    const text = document.getElementById("screenFlashText");
-    text.textContent = points > 0 ? `+${points} Punkte` : "Aufgabe erledigt!";
-    flash.classList.remove("show");
-    void flash.offsetWidth;
-    flash.classList.add("show");
-    window.setTimeout(() => flash.classList.remove("show"), 800);
-}
-
-function spawnConfetti() {
-    const layer = document.getElementById("confettiLayer");
-    const colors = ["#fbbf24", "#f97316", "#22c55e", "#38bdf8", "#a78bfa", "#ef4444", "#f472b6"];
-
-    for (let i = 0; i < 90; i++) {
-        const piece = document.createElement("span");
-        piece.className = "confetti-piece";
-        piece.style.left = `${Math.random() * window.innerWidth}px`;
-        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
-        piece.style.transform = `scale(${0.7 + Math.random() * 0.8})`;
-        piece.style.setProperty("--dx", `${(Math.random() * 220 - 110).toFixed(1)}px`);
-        piece.style.opacity = String(0.8 + Math.random() * 0.2);
-        piece.style.animationDelay = `${(Math.random() * 0.1).toFixed(2)}s`;
-        layer.appendChild(piece);
-        setTimeout(() => piece.remove(), 1800);
-    }
-}
-
-function initFirebase() {
-    if (!window.firebase) {
-        console.error("Firebase SDK nicht geladen.");
-        return false;
-    }
-
-    if (!isFirebaseConfigured) {
-        console.error("FirebaseConfig ist unvollständig:", firebaseConfig);
-        showStatus("Firebase ist nicht konfiguriert.");
-        return false;
-    }
-
+function loadLocalState() {
     try {
-        window.firebase.initializeApp(firebaseConfig);
-        db = window.firebase.database();
-        return true;
-    } catch (error) {
-        console.error("Firebase init error:", error);
-        showStatus("Firebase konnte nicht initialisiert werden. Bitte Firebase-Konfiguration prüfen.");
-        return false;
-    }
-}
-
-function getLocalState() {
-    try {
-        return JSON.parse(localStorage.getItem("jetlag-regenspurge")) || {};
-    } catch (error) {
-        return {};
+        const saved = JSON.parse(localStorage.getItem("jetlag-regenspurge") || "{}");
+        players = saved.players || {};
+        activeImages = saved.activeImages || [];
+        completedTaskImages = saved.completedTaskImages || [];
+    } catch {
+        players = {};
+        activeImages = [];
+        completedTaskImages = [];
     }
 }
 
@@ -604,219 +457,32 @@ function saveLocalState() {
     localStorage.setItem("jetlag-regenspurge", JSON.stringify({ players, activeImages, completedTaskImages }));
 }
 
-function persistState() {
-    if (gameRef) {
-        gameRef.set({
-            players: roomPlayers,
-            tasks: buildTaskMap(activeImages.concat(completedTaskImages.map(image => ({ image, completedBy: "done" }))))
-        });
-        return;
-    }
-    saveLocalState();
-}
-
-function buildTaskMap(taskList) {
-    const output = {};
-    taskList.forEach((task, index) => {
-        const id = task.id || `task-${index}`;
-        output[id] = {
-            id,
-            image: task.image,
-            points: task.points,
-            customPoints: !!task.customPoints,
-            timeLimit: task.timeLimit || 20,
-            expiresAt: task.expiresAt ?? Date.now() + 20 * 60 * 1000,
-            completedBy: task.completedBy || null,
-            completedAt: task.completedAt || null
-        };
-    });
-    return output;
-}
-
-function savePlayerInfoLocally() {
+function savePlayerMeta() {
     localStorage.setItem("jetlag-player-id", playerId);
     localStorage.setItem("jetlag-player-name", currentPlayer);
     if (roomId) localStorage.setItem("jetlag-room-id", roomId);
-}
-
-function loadCurrentPlayer() {
-    const savedName = localStorage.getItem("jetlag-player-name");
-    if (savedName) {
-        currentPlayer = savedName;
-        const nameInput = document.getElementById("playerName");
-        if (nameInput) nameInput.value = savedName;
-    }
-
-    const savedRoom = localStorage.getItem("jetlag-room-id");
-    if (savedRoom) {
-        roomId = savedRoom;
-        const roomInput = document.getElementById("roomCode");
-        if (roomInput) roomInput.value = savedRoom;
-    }
-}
-
-function joinOrCreateRoom() {
-    const name = document.getElementById("playerName").value.trim();
-    if (!name) {
-        alert("Bitte Spielernamen eingeben.");
-        return;
-    }
-
-    const roomInput = document.getElementById("roomCode").value.trim();
-    roomId = normalizeRoomId(roomInput);
-    savePlayerInfoLocally();
-    currentPlayer = name;
-    document.getElementById("roomCode").value = roomId;
-
-    if (!db) {
-        if (!initFirebase()) {
-            alert("Firebase ist nicht aktiv. Bitte Firebase-Konfiguration prüfen.");
-            return;
-        }
-    }
-
-    gameRef = db.ref(`rooms/${roomId}`);
-    connectToRoom();
-}
-
-function connectToRoom() {
-    if (!gameRef || !roomId) return;
-
-    gameRef.on("value", (snapshot) => {
-        const data = snapshot.val() || {};
-        roomPlayers = data.players || {};
-        const roomTasks = data.tasks || {};
-        const taskList = Object.values(roomTasks);
-
-        activeImages = taskList.filter(task => !task.completedBy);
-        completedTaskImages = taskList.filter(task => task.completedBy).map(task => task.image);
-
-        if (!roomPlayers[playerId]) {
-            gameRef.child("players").child(playerId).set({
-                name: currentPlayer,
-                score: 0,
-                highscore: 0,
-                connected: true
-            });
-        }
-
-        if (!roomTasks || Object.keys(roomTasks).length === 0) {
-            resetRoomTasks();
-            return;
-        }
-
-        updatePlayerDisplay();
-        render();
-        updateLeaderboard();
-    });
-
-    gameRef.child("players").child(playerId).set({
-        name: currentPlayer,
-        score: 0,
-        highscore: 0,
-        connected: true
-    });
-
-    updatePlayerDisplay();
-    updateLeaderboard();
-}
-
-function resetRoomTasks() {
-    if (!gameRef || !roomId) return;
-
-    const roundTasks = [];
-    const shuffled = [...tasks].sort(() => Math.random() - 0.5);
-
-    for (let i = 0; i < Math.min(3, shuffled.length); i++) {
-        const task = shuffled[i];
-        roundTasks.push({
-            id: `task-${Date.now()}-${i}`,
-            image: task.image,
-            points: task.points,
-            customPoints: !!task.customPoints,
-            timeLimit: 20,
-            expiresAt: Date.now() + 20 * 60 * 1000,
-            completedBy: null,
-            completedAt: null
-        });
-    }
-
-    gameRef.child("tasks").set(buildTaskMap(roundTasks));
-    showStatus(`Raum ${roomId} geöffnet. Lade andere Spieler ein!`);
-}
-
-function initializeSharedState() {
-    const saved = getLocalState();
-    players = saved.players || {};
-    activeImages = saved.activeImages || [];
-    completedTaskImages = saved.completedTaskImages || [];
-
-    if (currentPlayer && !players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-
-    if (roomId && db) {
-        gameRef = db.ref(`rooms/${roomId}`);
-        connectToRoom();
-        return;
-    }
-
-    if (activeImages.length === 0 && completedTaskImages.length === 0) {
-        initializeGame();
-    } else {
-        render();
-    }
-
-    updateLeaderboard();
-}
-
-function selectPlayer() {
-    const name = document.getElementById("playerName").value.trim();
-    if (name === "") {
-        alert("Bitte Spielernamen eingeben.");
-        return;
-    }
-
-    currentPlayer = name;
-    document.getElementById("roomCode").value = roomId || "";
-
-    if (roomId && gameRef) {
-        connectToRoom();
-        return;
-    }
-
-    if (!players[name]) {
-        players[name] = { score: 0, highscore: 0 };
-        persistState();
-    }
-
-    updatePlayerDisplay();
-
-    if (activeImages.length === 0 && completedTaskImages.length === 0) {
-        initializeGame();
-    }
 }
 
 function getCurrentPlayerStats() {
     if (roomId && roomPlayers[playerId]) {
         return roomPlayers[playerId];
     }
-
     if (currentPlayer && players[currentPlayer]) {
         return players[currentPlayer];
     }
-
     return { score: 0, highscore: 0 };
 }
 
 function updatePlayerDisplay() {
-    if (!currentPlayer) return;
+    const active = document.getElementById("activePlayer");
+    const score = document.getElementById("score");
+    const highscore = document.getElementById("highscore");
 
-    document.getElementById("activePlayer").textContent = currentPlayer;
+    if (!active || !score || !highscore) return;
+    active.textContent = currentPlayer || "-";
     const stats = getCurrentPlayerStats();
-    document.getElementById("score").textContent = stats.score ?? 0;
-    document.getElementById("highscore").textContent = stats.highscore ?? 0;
-    updateLeaderboard();
+    score.textContent = Number(stats.score || 0);
+    highscore.textContent = Number(stats.highscore || 0);
 }
 
 function updateLeaderboard() {
@@ -834,90 +500,81 @@ function updateLeaderboard() {
         return;
     }
 
-    ranking.forEach(([name, data]) => {
+    ranking.forEach(([key, data]) => {
         const li = document.createElement("li");
-        const label = roomId && name === playerId ? currentPlayer : (data.name || name);
+        const label = roomId && key === playerId ? currentPlayer : (data.name || key);
         li.textContent = `${label}: ${data.highscore ?? 0} Punkte`;
         list.appendChild(li);
     });
 }
 
-function updateScore(points) {
-    if (roomId && gameRef) {
-        gameRef.child("players").child(playerId).transaction((player) => {
-            if (!player) {
-                player = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-            }
+function updateRoundSummary() {
+    const fill = document.getElementById("progressFill");
+    const label = document.querySelector(".round-summary .label");
+    if (!fill || !label) return;
+    const total = tasks.length;
+    const done = completedTaskImages.length;
+    const percent = Math.min((done / total) * 100, 100);
+    fill.style.width = `${percent}%`;
+    label.textContent = `Fortschritt: ${done}/${total} erledigt`;
+}
 
-            const nextScore = (player.score || 0) + points;
-            player.score = nextScore;
-            if (nextScore > (player.highscore || 0)) {
-                player.highscore = nextScore;
-            }
-            return player;
-        });
+function initFirebase() {
+    if (!window.firebase || !firebaseConfig.databaseURL) return false;
+    try {
+        if (!window.firebase.apps || window.firebase.apps.length === 0) {
+            window.firebase.initializeApp(firebaseConfig);
+        }
+        db = window.firebase.database();
+        return true;
+    } catch (error) {
+        console.error("Firebase init error:", error);
+        return false;
+    }
+}
+
+function buildTaskMap(taskList) {
+    const result = {};
+    taskList.forEach((task, index) => {
+        const id = task.id || `task-${index}`;
+        result[id] = {
+            id,
+            image: task.image,
+            points: task.points,
+            customPoints: !!task.customPoints,
+            timeLimit: task.timeLimit || 20,
+            expiresAt: task.expiresAt || Date.now() + 20 * 1000,
+            completedBy: task.completedBy || null,
+            completedAt: task.completedAt || null
+        };
+    });
+    return result;
+}
+
+function persistLocalState() {
+    saveLocalState();
+    savePlayerMeta();
+}
+
+function persistRoomState() {
+    if (!gameRef || !roomId) {
+        persistLocalState();
         return;
     }
 
-    if (!currentPlayer) {
-        alert("Bitte zuerst einen Spieler auswählen.");
-        return;
-    }
+    const roomTasks = buildTaskMap(activeImages.concat(completedTaskImages.map((image, index) => ({
+        id: `done-${index}`,
+        image,
+        points: 0,
+        customPoints: false,
+        completedBy: "done",
+        completedAt: Date.now()
+    }))));
 
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-
-    players[currentPlayer].score += points;
-    if (players[currentPlayer].score > players[currentPlayer].highscore) {
-        players[currentPlayer].highscore = players[currentPlayer].score;
-    }
-
-    persistState();
-    updatePlayerDisplay();
-}
-
-function resetScore() {
-    if (roomId && gameRef) {
-        gameRef.child("players").child(playerId).transaction((player) => {
-            if (!player) {
-                player = { name: currentPlayer, score: 0, highscore: 0, connected: true };
-            }
-            player.score = 0;
-            return player;
-        });
-        return;
-    }
-
-    if (!currentPlayer) return;
-
-    if (!players[currentPlayer]) {
-        players[currentPlayer] = { score: 0, highscore: 0 };
-    }
-
-    players[currentPlayer].score = 0;
-    persistState();
-    updatePlayerDisplay();
-}
-
-function getTaskTimeLimit() {
-    const used = new Set((activeImages || []).map(task => task.timeLimit));
-    const available = taskTimeOptions.filter(value => !used.has(value));
-
-    if (available.length === 0) {
-        return taskTimeOptions[Math.floor(Math.random() * taskTimeOptions.length)];
-    }
-
-    return available[Math.floor(Math.random() * available.length)];
-}
-
-function createTaskWithTimer(taskTemplate) {
-    const timeLimit = getTaskTimeLimit();
-    return {
-        ...taskTemplate,
-        timeLimit,
-        expiresAt: Date.now() + timeLimit * 1000
-    };
+    gameRef.set({
+        players: roomPlayers,
+        tasks: roomTasks
+    });
 }
 
 function getRandomTask() {
@@ -927,120 +584,113 @@ function getRandomTask() {
     );
 
     if (available.length === 0) return null;
-
-    const taskTemplate = available[Math.floor(Math.random() * available.length)];
-    return createTaskWithTimer(taskTemplate);
+    const task = available[Math.floor(Math.random() * available.length)];
+    return {
+        ...task,
+        id: `task-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        timeLimit: 20,
+        expiresAt: Date.now() + 20 * 1000
+    };
 }
 
-function startNewRound() {
+function generateRound() {
     activeImages = [];
     completedTaskImages = [];
-    animationIndex = null;
-
-    if (roomId && gameRef) {
-        resetRoomTasks();
-        return;
-    }
-
     for (let i = 0; i < 3; i++) {
         const task = getRandomTask();
         if (task) activeImages.push(task);
     }
-
-    persistState();
-    render();
-    hideStatus();
+    persistLocalState();
+    if (gameRef) {
+        persistRoomState();
+    }
+    renderBoard();
 }
 
-function initializeGame() {
-    startNewRound();
-}
-
-function resetGameBoard() {
+function startNewRound() {
     const confirmReset = window.confirm("Möchtest du wirklich eine neue Runde starten? Bereits erledigte Aufgaben werden zurückgesetzt.");
     if (!confirmReset) return;
-
-    startNewRound();
+    generateRound();
     showStatus("Neue Runde gestartet!");
 }
 
-function openImageModal(imageSrc) {
-    const modal = document.getElementById("imageModal");
-    const modalImage = document.getElementById("modalImage");
-    modalImage.src = imageSrc;
-    modal.classList.add("show");
-}
-
-function closeImageModal() {
-    const modal = document.getElementById("imageModal");
-    modal.classList.remove("show");
-    document.getElementById("modalImage").src = "";
-}
-
-function refreshExpiredTasks() {
-    const now = Date.now();
-    const expiredTasks = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
-
-    if (expiredTasks.length === 0) return;
-
-    activeImages = activeImages.filter(task => !(task.expiresAt && task.expiresAt <= now));
-
-    expiredTasks.forEach(task => {
-        if (!completedTaskImages.includes(task.image)) {
-            const replacement = getRandomTask();
-            if (replacement) {
-                activeImages.push(replacement);
-            }
+function updateScore(points) {
+    if (roomId && roomPlayers[playerId]) {
+        const current = roomPlayers[playerId];
+        const nextScore = (current.score || 0) + points;
+        roomPlayers[playerId] = {
+            ...current,
+            score: nextScore,
+            highscore: Math.max(current.highscore || 0, nextScore),
+            name: currentPlayer
+        };
+        if (gameRef) {
+            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
         }
-    });
-
-    if (roomId && gameRef) {
-        const tasksMap = {};
-        activeImages.forEach((task, idx) => {
-            tasksMap[task.id || `task-${idx}`] = {
-                id: task.id || `task-${idx}`,
-                image: task.image,
-                points: task.points,
-                customPoints: !!task.customPoints,
-                timeLimit: task.timeLimit || 20,
-                expiresAt: Date.now() + (task.timeLimit || 20) * 1000,
-                completedBy: null,
-                completedAt: null
-            };
-        });
-
-        const completedMap = {};
-        completedTaskImages.forEach((image, idx) => {
-            completedMap[`done-${idx}`] = {
-                id: `done-${idx}`,
-                image,
-                points: 0,
-                customPoints: false,
-                timeLimit: 20,
-                expiresAt: Date.now() + 20 * 1000,
-                completedBy: "done",
-                completedAt: Date.now()
-            };
-        });
-
-        gameRef.child("tasks").set({ ...tasksMap, ...completedMap });
+        updatePlayerDisplay();
+        updateLeaderboard();
+        return;
     }
+
+    if (!currentPlayer) {
+        alert("Bitte Spielernamen eingeben.");
+        return;
+    }
+
+    if (!players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
+    }
+    players[currentPlayer].score = (players[currentPlayer].score || 0) + points;
+    players[currentPlayer].highscore = Math.max(players[currentPlayer].highscore || 0, players[currentPlayer].score);
+    persistLocalState();
+    updatePlayerDisplay();
+    updateLeaderboard();
 }
 
-function render() {
+function resetScore() {
+    if (roomId && roomPlayers[playerId]) {
+        roomPlayers[playerId] = { ...roomPlayers[playerId], score: 0, name: currentPlayer };
+        if (gameRef) {
+            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+        }
+        updatePlayerDisplay();
+        updateLeaderboard();
+        return;
+    }
+
+    if (!currentPlayer) return;
+    if (!players[currentPlayer]) {
+        players[currentPlayer] = { score: 0, highscore: 0 };
+    }
+    players[currentPlayer].score = 0;
+    persistLocalState();
+    updatePlayerDisplay();
+    updateLeaderboard();
+}
+
+function renderBoard() {
     const gameArea = document.getElementById("gameArea");
     if (!gameArea) return;
-
     gameArea.innerHTML = "";
 
-    activeImages.forEach((task, index) => {
+    if (activeImages.length === 0) {
+        const empty = document.createElement("div");
+        empty.textContent = "Keine Aufgaben mehr verfügbar.";
+        empty.style.color = "white";
+        empty.style.padding = "20px";
+        empty.style.textAlign = "center";
+        gameArea.appendChild(empty);
+    }
+
+    activeImages.forEach((task) => {
         const card = document.createElement("div");
         card.className = "card";
 
-        const remaining = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
         const timer = document.createElement("div");
-        timer.className = "task-timer" + (remaining <= 5 ? " warning" : "");
+        timer.className = "task-timer";
+        const remaining = Math.max(0, Math.ceil((task.expiresAt - Date.now()) / 1000));
         timer.textContent = `${remaining}s`;
+        if (remaining <= 5) timer.classList.add("warning");
 
         const img = document.createElement("img");
         img.src = task.image;
@@ -1049,7 +699,7 @@ function render() {
 
         const button = document.createElement("button");
         button.textContent = `${task.points} Punkte`;
-        button.addEventListener("click", () => completeTask(task, index));
+        button.addEventListener("click", () => completeTask(task));
 
         card.appendChild(timer);
         card.appendChild(img);
@@ -1061,43 +711,189 @@ function render() {
     updateLeaderboard();
 }
 
-function completeTask(task, index) {
-    if (!task) return;
-
-    if (!currentPlayer) {
-        alert("Bitte zuerst Spielernamen eingeben.");
+function completeTask(task) {
+    if (!task || !currentPlayer) {
+        alert("Bitte Spielernamen eingeben.");
         return;
     }
 
-    const points = task.customPoints ? task.points : task.points;
-    const taskImage = task.image;
+    activeImages = activeImages.filter(item => item.image !== task.image);
+    completedTaskImages.push(task.image);
 
-    activeImages = activeImages.filter(item => item.image !== taskImage);
-    completedTaskImages.push(taskImage);
-
-    updateScore(points);
-    triggerScreenFlash(points);
+    updateScore(task.points);
+    triggerScreenFlash(task.points);
     spawnConfetti();
+    persistLocalState();
+    if (gameRef) persistRoomState();
+    renderBoard();
+}
 
-    if (roomId && gameRef) {
-        const taskId = task.id || `task-${index}`;
-        gameRef.child("tasks").child(taskId).update({
-            completedBy: currentPlayer,
-            completedAt: Date.now(),
-            points: task.points,
-            customPoints: !!task.customPoints
-        });
+function openImageModal(imageSrc) {
+    const modal = document.getElementById("imageModal");
+    const image = document.getElementById("modalImage");
+    if (!modal || !image) return;
+    image.src = imageSrc;
+    modal.classList.add("show");
+}
+
+function closeImageModal() {
+    const modal = document.getElementById("imageModal");
+    const image = document.getElementById("modalImage");
+    if (!modal || !image) return;
+    modal.classList.remove("show");
+    image.src = "";
+}
+
+function triggerScreenFlash(points) {
+    const flash = document.getElementById("screenFlash");
+    const text = document.getElementById("screenFlashText");
+    if (!flash || !text) return;
+    text.textContent = points > 0 ? `+${points} Punkte` : "Aufgabe erledigt!";
+    flash.classList.remove("show");
+    void flash.offsetWidth;
+    flash.classList.add("show");
+    setTimeout(() => flash.classList.remove("show"), 800);
+}
+
+function spawnConfetti() {
+    const layer = document.getElementById("confettiLayer");
+    if (!layer) return;
+    const colors = ["#fbbf24", "#f97316", "#22c55e", "#38bdf8", "#a78bfa", "#ef4444", "#f472b6"];
+    for (let i = 0; i < 80; i++) {
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * window.innerWidth}px`;
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.setProperty("--dx", `${(Math.random() * 220 - 110).toFixed(1)}px`);
+        piece.style.opacity = String(0.8 + Math.random() * 0.2);
+        piece.style.animationDelay = `${(Math.random() * 0.1).toFixed(2)}s`;
+        layer.appendChild(piece);
+        setTimeout(() => piece.remove(), 1800);
+    }
+}
+
+function refreshExpiredTasks() {
+    const now = Date.now();
+    const expired = activeImages.filter(task => task.expiresAt && task.expiresAt <= now);
+    if (!expired.length) return;
+
+    activeImages = activeImages.filter(task => !task.expiresAt || task.expiresAt > now);
+    expired.forEach(task => {
+        if (!completedTaskImages.includes(task.image)) {
+            const replacement = getRandomTask();
+            if (replacement) activeImages.push(replacement);
+        }
+    });
+    persistLocalState();
+    if (gameRef) persistRoomState();
+    renderBoard();
+}
+
+function startTimerLoop() {
+    if (timerLoop) return;
+    timerLoop = setInterval(() => {
+        refreshExpiredTasks();
+    }, 1000);
+}
+
+function connectToRoom() {
+    if (!roomId) return;
+    if (!db && !initFirebase()) {
+        showStatus("Firebase ist nicht aktiv. Das Spiel läuft lokal weiter.");
+        return;
     }
 
-    render();
+    gameRef = db.ref(`rooms/${roomId}`);
+    gameRef.on("value", (snapshot) => {
+        const data = snapshot.val() || {};
+        roomPlayers = data.players || {};
+        const tasksMap = data.tasks || {};
+        const tasksList = Object.values(tasksMap);
+        activeImages = tasksList.filter(task => !task.completedBy);
+        completedTaskImages = tasksList.filter(task => task.completedBy).map(task => task.image);
+
+        if (!Object.prototype.hasOwnProperty.call(roomPlayers, playerId)) {
+            roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+            gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+        }
+
+        if (!tasksList.length) {
+            generateRound();
+            return;
+        }
+
+        updatePlayerDisplay();
+        updateLeaderboard();
+        renderBoard();
+    });
+
+    roomPlayers[playerId] = { name: currentPlayer, score: 0, highscore: 0, connected: true };
+    gameRef.child("players").child(playerId).set(roomPlayers[playerId]);
+    updatePlayerDisplay();
+    updateLeaderboard();
+}
+
+function joinOrCreateRoom() {
+    const nameInput = document.getElementById("playerName");
+    const roomInput = document.getElementById("roomCode");
+    if (!nameInput || !roomInput) return;
+
+    const name = nameInput.value.trim();
+    if (!name) {
+        alert("Bitte Spielernamen eingeben.");
+        return;
+    }
+
+    currentPlayer = name;
+    roomId = normalizeRoomId(roomInput.value);
+    roomInput.value = roomId;
+    savePlayerMeta();
+
+    if (window.firebase && firebaseConfig.databaseURL) {
+        initFirebase();
+        connectToRoom();
+    } else {
+        showStatus("Firebase nicht aktiv. Spiel läuft lokal.");
+        if (activeImages.length === 0 && completedTaskImages.length === 0) {
+            generateRound();
+        }
+        renderBoard();
+    }
+}
+
+function bindUI() {
+    const playerName = document.getElementById("playerName");
+    const roomCode = document.getElementById("roomCode");
+    if (playerName) playerName.value = currentPlayer;
+    if (roomCode) roomCode.value = roomId;
+
+    document.getElementById("joinRoomBtn").addEventListener("click", joinOrCreateRoom);
+    document.getElementById("resetScoreBtn").addEventListener("click", resetScore);
+    document.getElementById("newRoundBtn").addEventListener("click", startNewRound);
+    document.getElementById("closeModalBtn").addEventListener("click", closeImageModal);
+    document.getElementById("imageModal").addEventListener("click", closeImageModal);
+    document.getElementById("modalImage").addEventListener("click", (event) => event.stopPropagation());
 }
 
 function init() {
-    loadCurrentPlayer();
-    initializeSharedState();
-    startTaskTimerLoop();
+    loadLocalState();
+    bindUI();
+    if (!currentPlayer) {
+        const savedName = localStorage.getItem("jetlag-player-name");
+        if (savedName) currentPlayer = savedName;
+        const nameInput = document.getElementById("playerName");
+        if (nameInput) nameInput.value = currentPlayer;
+    }
+
+    if (activeImages.length === 0 && completedTaskImages.length === 0) {
+        generateRound();
+    } else {
+        renderBoard();
+    }
+
     updatePlayerDisplay();
     updateLeaderboard();
+    startTimerLoop();
 }
 
 window.addEventListener("DOMContentLoaded", init);
