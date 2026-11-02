@@ -655,18 +655,18 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const STORAGE_KEY = "regenspurge-player-name";
 
-const tasks = [
-  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
-  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10 },
-  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12 },
-  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18 },
-  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8 },
-  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20 },
-  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14 },
-  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16 },
-  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22 },
-  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9 },
-  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25 }
+const taskTemplates = [
+  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15, discountApplied: false },
+  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10, discountApplied: false },
+  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12, discountApplied: false },
+  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18, discountApplied: false },
+  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8, discountApplied: false },
+  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20, discountApplied: false },
+  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14, discountApplied: false },
+  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16, discountApplied: false },
+  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22, discountApplied: false },
+  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9, discountApplied: false },
+  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25, discountApplied: false }
 ];
 
 const board = document.getElementById("board");
@@ -690,6 +690,10 @@ let score = 0;
 let pendingTaskId = null;
 let gameStarted = false;
 let resetConfirmationStep = 0;
+
+function createFreshTaskDeck() {
+  return taskTemplates.map((task) => ({ ...task, discountApplied: false }));
+}
 
 function normalizePlayerName() {
   return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler";
@@ -843,6 +847,9 @@ function confirmTaskCompletion() {
     return;
   }
 
+  const remainingMs = Math.max(0, task.deadline - Date.now());
+  const remainingMinutes = Math.ceil(remainingMs / 60000);
+
   let pointsToAward = task.points;
 
   if (task.customPoints) {
@@ -854,8 +861,16 @@ function confirmTaskCompletion() {
     pointsToAward = parsed;
   }
 
-  task.status = "done";
-  task.pointsAwarded = pointsToAward;
+  if (!task.discountApplied) {
+    task.discountApplied = true;
+    task.points = Math.ceil(pointsToAward * 0.5);
+
+    if (remainingMinutes > 5) {
+      task.deadline = Date.now() + 5 * 60 * 1000;
+    }
+  }
+
+  task.status = "active";
   score += pointsToAward;
   updateScore();
   saveScoreToFirebase();
@@ -863,9 +878,8 @@ function confirmTaskCompletion() {
   createConfettiBurst();
   showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
 
-  activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
   closeConfirm();
-  refillBoard();
+  renderBoard();
 }
 
 function expireTask(taskId) {
@@ -885,10 +899,8 @@ function refillBoard() {
     const nextTask = remainingTasks.shift();
     if (!nextTask) break;
 
-    const durationMs = (nextTask.timeMinutes ?? 15) * 60 * 1000;
-
     nextTask.status = "active";
-    nextTask.deadline = Date.now() + durationMs;
+    nextTask.deadline = Date.now() + (nextTask.timeMinutes ?? 15) * 60 * 1000;
     activeTasks.push(nextTask);
   }
 
@@ -935,7 +947,7 @@ function renderBoard() {
 function startGame() {
   score = 0;
   updateScore();
-  remainingTasks = shuffleArray(tasks);
+  remainingTasks = shuffleArray(createFreshTaskDeck());
   activeTasks = [];
   gameStarted = true;
   finishScreen.classList.remove("show");
