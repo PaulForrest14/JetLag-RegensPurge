@@ -604,17 +604,17 @@ const db = getDatabase(app);
 const STORAGE_KEY = "regenspurge-player-name";
 
 const tasks = [
-  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
-  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10 },
-  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12 },
-  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18 },
-  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8 },
-  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20 },
-  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14 },
-  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16 },
-  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22 },
-  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9 },
-  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25 }
+  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15, solvedOnce: false, solvedBy: [] },
+  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10, solvedOnce: false, solvedBy: [] },
+  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12, solvedOnce: false, solvedBy: [] },
+  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18, solvedOnce: false, solvedBy: [] },
+  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8, solvedOnce: false, solvedBy: [] },
+  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20, solvedOnce: false, solvedBy: [] },
+  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14, solvedOnce: false, solvedBy: [] },
+  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16, solvedOnce: false, solvedBy: [] },
+  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22, solvedOnce: false, solvedBy: [] },
+  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9, solvedOnce: false, solvedBy: [] },
+  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25, solvedOnce: false, solvedBy: [] }
 ];
 
 const board = document.getElementById("board");
@@ -638,6 +638,7 @@ let score = 0;
 let pendingTaskId = null;
 let gameStarted = false;
 let resetConfirmationStep = 0;
+let replacementTimeoutId = null;
 
 function normalizePlayerName() {
   return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler";
@@ -780,6 +781,24 @@ function createConfettiBurst() {
   }
 }
 
+function roundUpHalf(value) {
+  return Math.ceil(value * 0.5);
+}
+
+function calculateTaskReward(task) {
+  const alreadyTriggered = !!task.solvedOnce;
+
+  if (!alreadyTriggered) {
+    if (task.timeMinutes > 5) {
+      task.timeMinutes = 5;
+    }
+    task.solvedOnce = true;
+    return roundUpHalf(task.points);
+  }
+
+  return task.points;
+}
+
 function openConfirm(taskId) {
   const selectedTask = activeTasks.find((task) => task.id === taskId);
   if (!selectedTask || selectedTask.status !== "active") return;
@@ -790,7 +809,7 @@ function openConfirm(taskId) {
   }
 
   pendingTaskId = taskId;
-  confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${selectedTask.points} Punkte.`}`;
+  confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${calculateTaskReward({ ...selectedTask, solvedOnce: selectedTask.solvedOnce || false })} Punkte.`}`;
 
   if (selectedTask.customPoints) {
     customPointsWrap.classList.add("show");
@@ -805,6 +824,17 @@ function openConfirm(taskId) {
 function closeConfirm() {
   pendingTaskId = null;
   confirmModal.classList.remove("show");
+}
+
+function scheduleReplacement(taskId) {
+  if (replacementTimeoutId) {
+    clearTimeout(replacementTimeoutId);
+  }
+
+  replacementTimeoutId = setTimeout(() => {
+    activeTasks = activeTasks.filter((task) => task.id !== taskId);
+    refillBoard();
+  }, 1500);
 }
 
 function confirmTaskCompletion() {
@@ -831,6 +861,8 @@ function confirmTaskCompletion() {
       return;
     }
     pointsToAward = parsed;
+  } else {
+    pointsToAward = calculateTaskReward(task);
   }
 
   const solvedIds = getSolvedTaskIds();
@@ -839,6 +871,7 @@ function confirmTaskCompletion() {
 
   task.status = "done";
   task.pointsAwarded = pointsToAward;
+  task.solvedBy.push(normalizePlayerName());
   score += pointsToAward;
   updateScore();
   saveScoreToFirebase();
@@ -846,9 +879,8 @@ function confirmTaskCompletion() {
   createConfettiBurst();
   showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
 
-  activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
   closeConfirm();
-  refillBoard();
+  scheduleReplacement(task.id);
 }
 
 function expireTask(taskId) {
