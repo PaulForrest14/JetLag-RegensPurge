@@ -510,7 +510,7 @@ width: 12px;
 height: 20px;
 border-radius: 3px;
 opacity: 0.9;
-animation: confetti-fall 4200ms ease-in forwards;
+animation: confetti-fall 1000ms ease-in forwards;
 }
 
 @keyframes confetti-fall {
@@ -793,7 +793,7 @@ toast.classList.remove('show');
 function createConfettiBurst() {
 const colors = ['#f0c75e', '#ef8a5b', '#c7d66d', '#8ab7d3', '#d889b6', '#7bbf9b', '#e3b0a8'];
 
-for (let i = 0; i < 2200; i += 1) {
+for (let i = 0; i < 1000; i += 1) {
 const piece = document.createElement('span');
 piece.className = 'confetti-piece';
 piece.style.left = `${Math.random() * 100}%`;
