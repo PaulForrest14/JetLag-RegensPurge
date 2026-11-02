@@ -689,6 +689,7 @@ let activeTasks = [];
 let score = 0;
 let pendingTaskId = null;
 let gameStarted = false;
+let resetConfirmationStep = 0;
 
 function normalizePlayerName() {
   return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler";
@@ -964,6 +965,29 @@ function confirmPlayerName() {
   showToast(`Spielername gespeichert: ${safeName}`);
 }
 
+function requestResetConfirmation() {
+  if (resetConfirmationStep === 0) {
+    const firstConfirm = window.confirm("Wirklich alle Daten löschen?");
+    if (!firstConfirm) {
+      resetConfirmationStep = 0;
+      return;
+    }
+
+    resetConfirmationStep = 1;
+    showToast("Noch einmal bestätigen!");
+    return;
+  }
+
+  const finalConfirm = window.confirm("Letzte Bestätigung: Alle Daten und Bestwerte werden endgültig gelöscht?");
+  if (!finalConfirm) {
+    resetConfirmationStep = 0;
+    return;
+  }
+
+  resetConfirmationStep = 0;
+  resetAllData();
+}
+
 function resetAllData() {
   try {
     localStorage.removeItem(STORAGE_KEY);
@@ -1008,7 +1032,7 @@ board.addEventListener("click", (event) => {
 document.getElementById("cancelConfirmBtn").addEventListener("click", closeConfirm);
 document.getElementById("confirmBtn").addEventListener("click", confirmTaskCompletion);
 document.getElementById("newGameBtn").addEventListener("click", startGame);
-resetAllBtn.addEventListener("click", resetAllData);
+resetAllBtn.addEventListener("click", requestResetConfirmation);
 
 playerNameInput.value = readStoredPlayerName();
 document.title = `${playerNameInput.value || "Spieler"} | RegensPurge`;
