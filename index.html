@@ -770,7 +770,9 @@ function openConfirm(taskId) {
   }
 
   pendingTaskId = taskId;
-  confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${calculateTaskReward({ ...selectedTask, solvedOnce: selectedTask.solvedOnce || false })} Punkte.`}`;
+  confirmText.textContent = 
+    `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${calculateTaskReward({ 
+      ...selectedTask, solvedOnce: selectedTask.solvedOnce || false })} Punkte.`}`;
 
   if (selectedTask.customPoints) {
     customPointsWrap.classList.add("show");
