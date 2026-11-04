@@ -347,6 +347,14 @@ transform: translateY(-1px);
 transform: translateY(0);
 }
 
+.task-button:disabled {
+background: #8c8173;
+box-shadow: none;
+cursor: not-allowed;
+transform: none;
+filter: none;
+}
+
 .task-card.expired .task-button {
 background: linear-gradient(135deg, #c77b72, #ac5b51);
 box-shadow: 0 10px 18px rgba(150, 81, 68, 0.18);
@@ -624,6 +632,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const STORAGE_KEY = "regenspurge-player-name";
+const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
+const MAX_COMPLETIONS_PER_TASK = 2;
 
 const tasks = [
   { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
@@ -766,12 +776,15 @@ function showToast(message) {
 
 function openConfirm(taskId) {
   const selectedTask = activeTasks.find((task) => task.id === taskId);
-  if (!selectedTask || selectedTask.status !== "active") return;
+  if (!selectedTask || selectedTask.status !== "active" || selectedTask.completionCount >= MAX_COMPLETIONS_PER_TASK) return;
 
   pendingTaskId = taskId;
-  confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${selectedTask.points} Punkte.`}`;
+  const isSecondPlayer = selectedTask.completionCount === 1;
+  confirmText.textContent = isSecondPlayer
+    ? `"${selectedTask.title}" wurde bereits einmal erledigt. Der zweite Spieler erhält ${selectedTask.points} Punkte.`
+    : `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${selectedTask.points} Punkte.`}`;
 
-  if (selectedTask.customPoints) {
+  if (selectedTask.customPoints && !isSecondPlayer) {
     customPointsWrap.classList.add("show");
     customPointsInput.value = String(Math.max(0, selectedTask.points));
   } else {
@@ -790,14 +803,15 @@ function confirmTaskCompletion() {
   if (pendingTaskId === null) return;
 
   const task = activeTasks.find((entry) => entry.id === pendingTaskId);
-  if (!task) {
+  if (!task || task.completionCount >= MAX_COMPLETIONS_PER_TASK) {
     closeConfirm();
     return;
   }
 
+  const isFirstCompletion = task.completionCount === 0;
   let pointsToAward = task.points;
 
-  if (task.customPoints) {
+  if (isFirstCompletion && task.customPoints) {
     const parsed = Number(customPointsInput.value);
     if (!Number.isFinite(parsed) || parsed < 0) {
       showToast("Bitte gültige Punkte eingeben.");
@@ -806,17 +820,28 @@ function confirmTaskCompletion() {
     pointsToAward = parsed;
   }
 
-  task.status = "done";
+  task.completionCount += 1;
   task.pointsAwarded = pointsToAward;
   score += pointsToAward;
   updateScore();
   saveScoreToFirebase();
 
-  showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
+  if (isFirstCompletion) {
+    task.points = Math.ceil(pointsToAward / 2);
+    task.customPoints = false;
 
-  activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
+    const remainingMs = task.deadline - Date.now();
+    if (remainingMs > SECOND_PLAYER_TIME_MS) {
+      task.deadline = Date.now() + SECOND_PLAYER_TIME_MS;
+    }
+
+    showToast(`${task.title} erledigt! +${pointsToAward} Punkte. Zweite Chance: ${task.points} Punkte.`);
+  } else {
+    showToast(`${task.title} auch vom zweiten Spieler erledigt! +${pointsToAward} Punkte.`);
+  }
+
   closeConfirm();
-  refillBoard();
+  renderBoard();
 }
 
 function expireTask(taskId) {
@@ -839,6 +864,7 @@ function refillBoard() {
     const durationMs = (nextTask.timeMinutes ?? 15) * 60 * 1000;
 
     nextTask.status = "active";
+    nextTask.completionCount = 0;
     nextTask.deadline = Date.now() + durationMs;
     activeTasks.push(nextTask);
   }
@@ -860,6 +886,16 @@ function renderBoard() {
       const timeText = formatTimer(remainingMs);
       const isWarning = remainingMs <= 60 * 1000 && remainingMs > 30 * 1000;
       const isDanger = remainingMs <= 30 * 1000;
+      const completionCount = task.completionCount ?? 0;
+      const isFullyCompleted = completionCount >= MAX_COMPLETIONS_PER_TASK;
+      const pointsLabel = isFullyCompleted
+        ? "Erledigt"
+        : completionCount === 1
+          ? `2. Spieler: ${task.points} P`
+          : task.customPoints ? "Eigenpunkte" : `${task.points} P`;
+      const buttonLabel = isFullyCompleted
+        ? "Für beide erledigt"
+        : completionCount === 1 ? "Zweiter Spieler: erledigt" : "Aufgabe erledigt";
 
       return `
         <article class="task-card ${task.status === "expired" ? "expired" : ""}" data-id="${task.id}">
@@ -871,11 +907,11 @@ function renderBoard() {
             <h2 class="task-title">${task.title}</h2>
 
             <div class="task-meta">
-              <span class="badge">${task.customPoints ? "Eigenpunkte" : `${task.points} P`}</span>
+              <span class="badge">${pointsLabel}</span>
               <span class="timer ${isWarning ? "warning" : ""} ${isDanger ? "danger" : ""}">${timeText}</span>
             </div>
 
-            <button class="task-button" type="button" data-task-id="${task.id}">Aufgabe erledigt</button>
+            <button class="task-button" type="button" data-task-id="${task.id}" ${isFullyCompleted ? "disabled" : ""}>${buttonLabel}</button>
           </div>
         </article>
       `;
@@ -886,7 +922,7 @@ function renderBoard() {
 function startGame() {
   score = 0;
   updateScore();
-  remainingTasks = shuffleArray(tasks);
+  remainingTasks = shuffleArray(tasks).map((task) => ({ ...task }));
   activeTasks = [];
   gameStarted = true;
   finishScreen.classList.remove("show");
@@ -975,7 +1011,7 @@ playerNameConfirmBtn.addEventListener("click", confirmPlayerName);
 
 board.addEventListener("click", (event) => {
   const button = event.target.closest("[data-task-id]");
-  if (!button) return;
+  if (!button || button.disabled) return;
   const taskId = Number(button.dataset.taskId);
   openConfirm(taskId);
 });
