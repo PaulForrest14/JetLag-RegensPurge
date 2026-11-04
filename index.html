@@ -22,195 +22,24 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
-  authDomain: "regenspurge.firebaseapp.com",
-  databaseURL: "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "regenspurge",
-  storageBucket: "regenspurge.firebasestorage.app",
-  messagingSenderId: "706439523349",
-  appId: "1:706439523349:web:0db0ac82a9241ee184321c",
-  measurementId: "G-K758M4BMPZ"
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const GAME_REF = ref(db, "gameState");
-const STORAGE_KEY = "regenspurge-player-name";
-const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
-const MAX_COMPLETIONS_PER_TASK = 2;
-const tasks = [
-  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
-  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10 },
-  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12 },
-  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18 },
-  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8 },
-  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20 },
-  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14 },
-  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16 },
-  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22 },
-  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9 },
-  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25 }
-];
-const byId = Object.fromEntries(tasks.map(task => [task.id, task]));
-const board = document.getElementById("board");
-const scoreValue = document.getElementById("scoreValue");
-const playerNameInput = document.getElementById("playerNameInput");
-const playerNameConfirmBtn = document.getElementById("playerNameConfirmBtn");
-const resetAllBtn = document.getElementById("resetAllBtn");
-const confirmModal = document.getElementById("confirmModal");
-const confirmText = document.getElementById("confirmText");
-const customPointsWrap = document.getElementById("customPointsWrap");
-const customPointsInput = document.getElementById("customPointsInput");
-const toast = document.getElementById("toast");
-const finishScreen = document.getElementById("finishScreen");
-const finishSummary = document.getElementById("finishSummary");
-const leaderboardList = document.getElementById("leaderboardList");
-let sharedState = null;
-let pendingTaskId = null;
-let resetConfirmationStep = 0;
-let initializing = false;
-
-function normalizePlayerName() { return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler"; }
-function makePlayerKey(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "spieler"; }
-function playerKey() { return makePlayerKey(normalizePlayerName()); }
-function readStoredPlayerName() { try { const value = localStorage.getItem(STORAGE_KEY); return value ? value.trim().slice(0, 22) || "Spieler" : "Spieler"; } catch { return "Spieler"; } }
-function saveStoredPlayerName(name) { try { localStorage.setItem(STORAGE_KEY, name); } catch { /* localStorage may be unavailable */ } }
-function shuffleArray(array) { const result = [...array]; for (let i = result.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [result[i], result[j]] = [result[j], result[i]]; } return result; }
-function formatTimer(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2,"0")}:${String(s % 60).padStart(2,"0")}`; }
-function showToast(message) { toast.textContent = message; toast.classList.add("show"); clearTimeout(showToast.timeoutId); showToast.timeoutId = setTimeout(() => toast.classList.remove("show"), 2200); }
-function saveLeaderboardScore(value) { const name = normalizePlayerName(); set(ref(db, `leaderboard/${playerKey()}`), { name, score: value, updatedAt: Date.now() }).catch(() => showToast("Punktestand konnte nicht synchronisiert werden.")); }
-function renderLeaderboard(data) { const entries = Object.values(data || {}).filter(item => item && typeof item.score === "number").sort((a,b) => b.score-a.score).slice(0,5); leaderboardList.innerHTML = entries.length ? entries.map((entry,i) => `<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${escapeHtml(entry.name || "Spieler")}</span><span class="leaderboard-score">${entry.score}</span></li>`).join("") : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>'; }
-function escapeHtml(value) { return String(value).replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char])); }
-function makeNewState() {
-  const ids = shuffleArray(tasks.map(task => task.id));
-  const activeTasks = {};
-  for (const id of ids.splice(0, 3)) activeTasks[id] = makeActiveTask(id);
-  return { activeTasks, remainingTaskIds: ids, playerScores: {}, startedAt: Date.now(), finished: false };
-}
-function makeActiveTask(id) { const task = byId[id]; return { deadline: Date.now() + task.timeMinutes * 60000, points: task.points, customPoints: task.customPoints, completionCount: 0, completedBy: {} }; }
-function normalizeState(state) { if (!state || typeof state !== "object") return null; return { activeTasks: state.activeTasks || {}, remainingTaskIds: Array.isArray(state.remainingTaskIds) ? state.remainingTaskIds : [], playerScores: state.playerScores || {}, finished: Boolean(state.finished), startedAt: state.startedAt || Date.now() }; }
-function renderBoard() {
-  const state = normalizeState(sharedState);
-  if (!state) { board.innerHTML = ""; scoreValue.textContent = "0"; return; }
-  const currentScore = Number(state.playerScores[playerKey()] || 0);
-  scoreValue.textContent = String(currentScore);
-  const active = Object.entries(state.activeTasks).filter(([id]) => byId[id]).map(([id, task]) => ({ ...byId[id], ...task, id: Number(id) }));
-  board.innerHTML = active.map(task => {
-    const remaining = Math.max(0, task.deadline - Date.now());
-    const warning = remaining <= 60000 && remaining > 30000;
-    const danger = remaining <= 30000;
-    const count = Number(task.completionCount || 0);
-    const doneByMe = Boolean(task.completedBy && task.completedBy[playerKey()]);
-    const disabled = count >= MAX_COMPLETIONS_PER_TASK || doneByMe;
-    const label = count === 0 ? (task.customPoints ? "Eigenpunkte" : `${task.points} P`) : count === 1 ? `2. Spieler: ${task.points} P` : "Erledigt";
-    const buttonText = count >= 2 ? "Für beide erledigt" : doneByMe ? "Von dir erledigt" : count === 1 ? "Zweiter Spieler: erledigt" : "Aufgabe erledigt";
-    return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="${escapeHtml(task.title)}" /></div><div class="task-body"><h2 class="task-title">${escapeHtml(task.title)}</h2><div class="task-meta"><span class="badge">${label}</span><span class="timer ${warning ? "warning" : ""} ${danger ? "danger" : ""}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${disabled ? "disabled" : ""}>${buttonText}</button></div></article>`;
-  }).join("");
-  if (state.finished) { finishScreen.classList.add("show"); finishSummary.textContent = `${normalizePlayerName()}, du hast insgesamt ${currentScore} Punkte gesammelt.`; }
-  else finishScreen.classList.remove("show");
-}
-async function initializeGameIfNeeded() {
-  if (initializing) return;
-  initializing = true;
-  try { await runTransaction(GAME_REF, current => current || makeNewState()); }
-  catch { showToast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
-  finally { initializing = false; }
-}
-function openConfirm(id) {
-  const state = normalizeState(sharedState);
-  const task = state?.activeTasks?.[id];
-  if (!task || task.completionCount >= MAX_COMPLETIONS_PER_TASK || task.completedBy?.[playerKey()]) return;
-  pendingTaskId = Number(id);
-  const second = task.completionCount === 1;
-  confirmText.textContent = second ? `Diese Aufgabe wurde bereits einmal erledigt. Du erhältst ${task.points} Punkte.` : `"${byId[id].title}" ist erledigt. ${task.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${task.points} Punkte.`}`;
-  if (task.customPoints && !second) { customPointsWrap.classList.add("show"); customPointsInput.value = String(task.points); }
-  else customPointsWrap.classList.remove("show");
-  confirmModal.classList.add("show");
-}
-function closeConfirm() { pendingTaskId = null; confirmModal.classList.remove("show"); }
-async function confirmTaskCompletion() {
-  if (pendingTaskId === null) return;
-  const id = pendingTaskId;
-  const localTask = normalizeState(sharedState)?.activeTasks?.[id];
-  const isCustomFirst = localTask?.completionCount === 0 && localTask.customPoints;
-  const enteredPoints = Number(customPointsInput.value);
-  if (isCustomFirst && (!Number.isFinite(enteredPoints) || enteredPoints < 0)) { showToast("Bitte gültige Punkte eingeben."); return; }
-  closeConfirm();
-  const key = playerKey();
-  let awarded = 0;
-  try {
-    const result = await runTransaction(GAME_REF, current => {
-      const state = normalizeState(current);
-      const task = state?.activeTasks?.[id];
-      if (!task || task.completionCount >= MAX_COMPLETIONS_PER_TASK || task.completedBy?.[key]) return;
-      const first = task.completionCount === 0;
-      awarded = first && task.customPoints ? enteredPoints : Number(task.points);
-      task.completionCount = Number(task.completionCount || 0) + 1;
-      task.completedBy = { ...(task.completedBy || {}), [key]: true };
-      if (first) {
-        task.points = Math.ceil(awarded / 2);
-        task.customPoints = false;
-        const now = Date.now();
-        if (task.deadline - now > SECOND_PLAYER_TIME_MS) task.deadline = now + SECOND_PLAYER_TIME_MS;
-      }
-      state.playerScores[key] = Number(state.playerScores[key] || 0) + awarded;
-      return state;
-    }, { applyLocally: false });
-    if (!result.committed) { showToast("Diese Aufgabe wurde bereits von dir erledigt oder ist abgelaufen."); return; }
-    saveLeaderboardScore(Number(result.snapshot.val()?.playerScores?.[key] || 0));
-    showToast(`Aufgabe erledigt! +${awarded} Punkte`);
-  } catch { showToast("Erledigung konnte nicht gespeichert werden. Verbindung prüfen."); }
-}
-async function advanceExpiredTasks() {
-  try {
-    await runTransaction(GAME_REF, current => {
-      const state = normalizeState(current);
-      if (!state || state.finished) return;
-      const now = Date.now();
-      for (const [id, task] of Object.entries(state.activeTasks)) {
-        if (Number(task.deadline) <= now) delete state.activeTasks[id];
-      }
-      while (Object.keys(state.activeTasks).length < 3 && state.remainingTaskIds.length) {
-        const id = state.remainingTaskIds.shift();
-        state.activeTasks[id] = makeActiveTask(id);
-      }
-      if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) state.finished = true;
-      return state;
-    }, { applyLocally: false });
-  } catch { /* a later timer tick retries */ }
-}
-async function startNewSharedGame() {
-  if (!window.confirm("Ein neues gemeinsames Spiel starten? Der aktuelle Spielstand wird für alle zurückgesetzt.")) return;
-  try { await runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }); showToast("Neues gemeinsames Spiel gestartet."); }
-  catch { showToast("Neues Spiel konnte nicht gestartet werden."); }
-}
-function requestResetConfirmation() {
-  if (resetConfirmationStep === 0) {
-    if (!window.confirm("Wirklich das gemeinsame Spiel und alle Bestwerte für alle löschen?")) return;
-    resetConfirmationStep = 1; showToast("Zur endgültigen Löschung erneut klicken."); return;
-  }
-  resetConfirmationStep = 0;
-  if (!window.confirm("Letzte Bestätigung: Spielstand und Bestenliste endgültig löschen?")) return;
-  Promise.all([set(GAME_REF, makeNewState()), set(ref(db, "leaderboard"), null)])
-    .then(() => showToast("Gemeinsames Spiel und Bestenliste zurückgesetzt."))
-    .catch(() => showToast("Zurücksetzen fehlgeschlagen."));
-}
-function confirmPlayerName() { const name = normalizePlayerName(); saveStoredPlayerName(name); document.title = `${name} | RegensPurge`; renderBoard(); showToast(`Spielername gespeichert: ${name}`); }
-
-playerNameInput.addEventListener("input", () => { const name = playerNameInput.value.trim().slice(0,22); document.title = name ? `${name} | RegensPurge` : "RegensPurge"; renderBoard(); });
-playerNameConfirmBtn.addEventListener("click", confirmPlayerName);
-board.addEventListener("click", event => { const button = event.target.closest("[data-task-id]"); if (button && !button.disabled) openConfirm(button.dataset.taskId); });
-document.getElementById("cancelConfirmBtn").addEventListener("click", closeConfirm);
-document.getElementById("confirmBtn").addEventListener("click", confirmTaskCompletion);
-document.getElementById("newGameBtn").addEventListener("click", startNewSharedGame);
-resetAllBtn.addEventListener("click", requestResetConfirmation);
-playerNameInput.value = readStoredPlayerName();
-document.title = `${playerNameInput.value || "Spieler"} | RegensPurge`;
-onValue(GAME_REF, snapshot => { sharedState = snapshot.val(); if (!sharedState) initializeGameIfNeeded(); renderBoard(); });
-onValue(ref(db, "leaderboard"), snapshot => renderLeaderboard(snapshot.val() || {}), () => renderLeaderboard({}));
-initializeGameIfNeeded();
-setInterval(() => { advanceExpiredTasks(); renderBoard(); }, 1000);
+const firebaseConfig={apiKey:"AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",authDomain:"regenspurge.firebaseapp.com",databaseURL:"https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",projectId:"regenspurge",storageBucket:"regenspurge.firebasestorage.app",messagingSenderId:"706439523349",appId:"1:706439523349:web:0db0ac82a9241ee184321c",measurementId:"G-K758M4BMPZ"};
+const app=initializeApp(firebaseConfig);const db=getDatabase(app);const GAME_REF=ref(db,"gameState");const STORAGE_KEY="regenspurge-player-name";const SECOND_PLAYER_TIME_MS=5*60*1000;
+const tasks=[{id:1,title:"Stadt-Check",image:"card-small(1).png",points:20,customPoints:false,timeMinutes:15},{id:2,title:"Kaffeepause",image:"card-small (2).png",points:25,customPoints:false,timeMinutes:10},{id:3,title:"Blick auf die Donau",image:"card-small (3).png",points:30,customPoints:false,timeMinutes:12},{id:4,title:"Altstadt-Abenteuer",image:"card-small (4).png",points:35,customPoints:false,timeMinutes:18},{id:5,title:"Regensburger Snack",image:"card-small (5).png",points:40,customPoints:false,timeMinutes:8},{id:6,title:"Foto-Highlight",image:"card-small (6).png",points:25,customPoints:false,timeMinutes:20},{id:7,title:"Zusammen mit Freunden",image:"card-small (7).png",points:30,customPoints:false,timeMinutes:14},{id:8,title:"Tour durch die Gassen",image:"card-small (8).png",points:20,customPoints:false,timeMinutes:16},{id:9,title:"Mit dem Stadtbild feiern",image:"card-small (9).png",points:45,customPoints:false,timeMinutes:22},{id:10,title:"Eigenes Punkteritual",image:"card-small (10).png",points:15,customPoints:true,timeMinutes:9},{id:11,title:"Finale Überraschung",image:"card-small (11).png",points:50,customPoints:true,timeMinutes:25}];
+const byId=Object.fromEntries(tasks.map(task=>[task.id,task]));const board=document.getElementById("board"),scoreValue=document.getElementById("scoreValue"),playerNameInput=document.getElementById("playerNameInput"),playerNameConfirmBtn=document.getElementById("playerNameConfirmBtn"),resetAllBtn=document.getElementById("resetAllBtn"),confirmModal=document.getElementById("confirmModal"),confirmText=document.getElementById("confirmText"),customPointsWrap=document.getElementById("customPointsWrap"),customPointsInput=document.getElementById("customPointsInput"),toast=document.getElementById("toast"),finishScreen=document.getElementById("finishScreen"),finishSummary=document.getElementById("finishSummary"),leaderboardList=document.getElementById("leaderboardList");
+let sharedState=null,pendingTaskId=null,resetConfirmationStep=0,initializing=false;
+function normalizePlayerName(){return(playerNameInput.value||"Spieler").trim().slice(0,22)||"Spieler"}function makePlayerKey(name){return name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"")||"spieler"}function playerKey(){return makePlayerKey(normalizePlayerName())}function readStoredPlayerName(){try{const value=localStorage.getItem(STORAGE_KEY);return value?value.trim().slice(0,22)||"Spieler":"Spieler"}catch{return"Spieler"}}function saveStoredPlayerName(name){try{localStorage.setItem(STORAGE_KEY,name)}catch{}}function shuffleArray(array){const result=[...array];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result}function formatTimer(ms){const s=Math.max(0,Math.ceil(ms/1000));return`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`}function showToast(message){toast.textContent=message;toast.classList.add("show");clearTimeout(showToast.timeoutId);showToast.timeoutId=setTimeout(()=>toast.classList.remove("show"),2200)}function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}function saveLeaderboardScore(value){const name=normalizePlayerName();set(ref(db,`leaderboard/${playerKey()}`),{name,score:value,updatedAt:Date.now()}).catch(()=>showToast("Punktestand konnte nicht synchronisiert werden."))}function renderLeaderboard(data){const entries=Object.values(data||{}).filter(item=>item&&typeof item.score==="number").sort((a,b)=>b.score-a.score).slice(0,5);leaderboardList.innerHTML=entries.length?entries.map((entry,i)=>`<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${escapeHtml(entry.name||"Spieler")}</span><span class="leaderboard-score">${entry.score}</span></li>`).join(""):'<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>'}
+function makeNewState(){const ids=shuffleArray(tasks.map(task=>task.id));const activeTasks={};for(const id of ids.splice(0,3))activeTasks[id]=makeActiveTask(id);return{activeTasks,remainingTaskIds:ids,playerScores:{},startedAt:Date.now(),finished:false}}
+function makeActiveTask(id){const task=byId[id];return{deadline:Date.now()+task.timeMinutes*60000,points:task.points,customPoints:task.customPoints,completionCount:0,completedBy:{}}}function normalizeState(state){if(!state||typeof state!=="object")return null;return{...state,activeTasks:state.activeTasks||{},remainingTaskIds:Array.isArray(state.remainingTaskIds)?state.remainingTaskIds:[],playerScores:state.playerScores||{},finished:Boolean(state.finished),startedAt:state.startedAt||Date.now()}}
+function renderBoard(){const state=normalizeState(sharedState);if(!state){board.innerHTML="";scoreValue.textContent="0";return}const key=playerKey(),currentScore=Number(state.playerScores[key]||0);scoreValue.textContent=String(currentScore);const active=Object.entries(state.activeTasks).filter(([id])=>byId[id]).map(([id,task])=>({...byId[id],...task,id:Number(id)}));board.innerHTML=active.map(task=>{const remaining=Math.max(0,task.deadline-Date.now()),warning=remaining<=60000&&remaining>30000,danger=remaining<=30000,count=Number(task.completionCount||0),doneByMe=Boolean(task.completedBy&&task.completedBy[key]),label=count===0?(task.customPoints?"Eigenpunkte":`${task.points} P`):`Weitere Spieler: ${task.points} P`,buttonText=doneByMe?"Von dir erledigt":count>0?"Auch erledigt":"Aufgabe erledigt";return`<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="${escapeHtml(task.title)}" /></div><div class="task-body"><h2 class="task-title">${escapeHtml(task.title)}</h2><div class="task-meta"><span class="badge">${label}</span><span class="timer ${warning?"warning":""} ${danger?"danger":""}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${doneByMe?"disabled":""}>${buttonText}</button></div></article>`}).join("");if(state.finished){finishScreen.classList.add("show");finishSummary.textContent=`${normalizePlayerName()}, du hast insgesamt ${currentScore} Punkte gesammelt.`}else finishScreen.classList.remove("show")}
+async function initializeGameIfNeeded(){if(initializing)return;initializing=true;try{await runTransaction(GAME_REF,current=>current||makeNewState())}catch{showToast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen.")}finally{initializing=false}}
+function openConfirm(id){const task=normalizeState(sharedState)?.activeTasks?.[id];if(!task||task.completedBy?.[playerKey()]||task.deadline<=Date.now())return;pendingTaskId=Number(id);const repeated=Number(task.completionCount||0)>0;confirmText.textContent=repeated?`Diese Aufgabe wurde bereits erledigt. Du erhältst ${task.points} Punkte.`:`"${byId[id].title}" ist erledigt. ${task.customPoints?"Trage die Punkte selbst ein.":`Du bekommst ${task.points} Punkte.`}`;if(task.customPoints&&!repeated){customPointsWrap.classList.add("show");customPointsInput.value=String(task.points)}else customPointsWrap.classList.remove("show");confirmModal.classList.add("show")}
+function closeConfirm(){pendingTaskId=null;confirmModal.classList.remove("show")}
+async function confirmTaskCompletion(){if(pendingTaskId===null)return;const id=pendingTaskId,key=playerKey(),localTask=normalizeState(sharedState)?.activeTasks?.[id],isCustomFirst=Number(localTask?.completionCount||0)===0&&localTask?.customPoints,enteredPoints=Number(customPointsInput.value);if(isCustomFirst&&(!Number.isFinite(enteredPoints)||enteredPoints<0)){showToast("Bitte gültige Punkte eingeben.");return}closeConfirm();let awarded=0;try{const result=await runTransaction(GAME_REF,current=>{const state=normalizeState(current),task=state?.activeTasks?.[id];if(!task||task.deadline<=Date.now()||task.completedBy?.[key])return;const first=Number(task.completionCount||0)===0;awarded=first&&task.customPoints?enteredPoints:Number(task.points);task.completionCount=Number(task.completionCount||0)+1;task.completedBy={...(task.completedBy||{}),[key]:true};if(first){task.points=Math.ceil(awarded/2);task.customPoints=false;const now=Date.now();if(task.deadline-now>SECOND_PLAYER_TIME_MS)task.deadline=now+SECOND_PLAYER_TIME_MS}state.playerScores[key]=Number(state.playerScores[key]||0)+awarded;return state},{applyLocally:false});if(!result.committed){showToast("Aufgabe ist abgelaufen oder wurde bereits von dir erledigt.");return}saveLeaderboardScore(Number(result.snapshot.val()?.playerScores?.[key]||0));showToast(`Aufgabe erledigt! +${awarded} Punkte`)}catch{showToast("Erledigung konnte nicht gespeichert werden. Verbindung prüfen.")}}
+async function advanceExpiredTasks(){try{await runTransaction(GAME_REF,current=>{const state=normalizeState(current);if(!state||state.finished)return;const now=Date.now();for(const[id,task]of Object.entries(state.activeTasks)){if(Number(task.deadline)<=now)delete state.activeTasks[id]}while(Object.keys(state.activeTasks).length<3&&state.remainingTaskIds.length){const id=state.remainingTaskIds.shift();state.activeTasks[id]=makeActiveTask(id)}if(!Object.keys(state.activeTasks).length&&!state.remainingTaskIds.length)state.finished=true;return state},{applyLocally:false})}catch{}}
+async function startNewSharedGame(){if(!window.confirm("Ein neues gemeinsames Spiel starten? Der aktuelle Spielstand wird für alle zurückgesetzt."))return;try{await runTransaction(GAME_REF,()=>makeNewState(),{applyLocally:false});showToast("Neues gemeinsames Spiel gestartet.")}catch{showToast("Neues Spiel konnte nicht gestartet werden.")}}
+function requestResetConfirmation(){if(resetConfirmationStep===0){if(!window.confirm("Wirklich das gemeinsame Spiel und alle Bestwerte für alle löschen?"))return;resetConfirmationStep=1;showToast("Zur endgültigen Löschung erneut klicken.");return}resetConfirmationStep=0;if(!window.confirm("Letzte Bestätigung: Spielstand und Bestenliste endgültig löschen?"))return;Promise.all([set(GAME_REF,makeNewState()),set(ref(db,"leaderboard"),null)]).then(()=>showToast("Gemeinsames Spiel und Bestenliste zurückgesetzt.")).catch(()=>showToast("Zurücksetzen fehlgeschlagen."))}
+function confirmPlayerName(){const name=normalizePlayerName();saveStoredPlayerName(name);document.title=`${name} | RegensPurge`;renderBoard();showToast(`Spielername gespeichert: ${name}`)}
+playerNameInput.addEventListener("input",()=>{const name=playerNameInput.value.trim().slice(0,22);document.title=name?`${name} | RegensPurge`:"RegensPurge";renderBoard()});playerNameConfirmBtn.addEventListener("click",confirmPlayerName);board.addEventListener("click",event=>{const button=event.target.closest("[data-task-id]");if(button&&!button.disabled)openConfirm(button.dataset.taskId)});document.getElementById("cancelConfirmBtn").addEventListener("click",closeConfirm);document.getElementById("confirmBtn").addEventListener("click",confirmTaskCompletion);document.getElementById("newGameBtn").addEventListener("click",startNewSharedGame);resetAllBtn.addEventListener("click",requestResetConfirmation);playerNameInput.value=readStoredPlayerName();document.title=`${playerNameInput.value||"Spieler"} | RegensPurge`;onValue(GAME_REF,snapshot=>{sharedState=snapshot.val();if(!sharedState)initializeGameIfNeeded();renderBoard()});onValue(ref(db,"leaderboard"),snapshot=>renderLeaderboard(snapshot.val()||{}),()=>renderLeaderboard({}));initializeGameIfNeeded();setInterval(()=>{advanceExpiredTasks();renderBoard()},1000);
 </script>
 </body>
 </html>
