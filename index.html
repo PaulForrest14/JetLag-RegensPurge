@@ -24,7 +24,9 @@
 --wood: #4e3828;
 }
 
-* { box-sizing: border-box; }
+* {
+box-sizing: border-box;
+}
 
 html, body {
 margin: 0;
@@ -311,8 +313,13 @@ font-size: 0.96rem;
 text-align: right;
 }
 
-.timer.warning { color: #a46a3d; }
-.timer.danger { color: #b54b42; }
+.timer.warning {
+color: #a46a3d;
+}
+
+.timer.danger {
+color: #b54b42;
+}
 
 .task-button {
 margin-top: auto;
@@ -336,7 +343,9 @@ filter: brightness(1.03);
 transform: translateY(-1px);
 }
 
-.task-button:active { transform: translateY(0); }
+.task-button:active {
+transform: translateY(0);
+}
 
 .task-card.expired .task-button {
 background: linear-gradient(135deg, #c77b72, #ac5b51);
@@ -354,7 +363,9 @@ background: rgba(26, 20, 17, 0.64);
 z-index: 20;
 }
 
-.modal.show { display: flex; }
+.modal.show {
+display: flex;
+}
 
 .modal-card {
 width: min(420px, calc(100% - 28px));
@@ -382,7 +393,9 @@ display: none;
 margin-bottom: 16px;
 }
 
-.custom-points.show { display: block; }
+.custom-points.show {
+display: block;
+}
 
 .custom-points label {
 display: flex;
@@ -421,8 +434,13 @@ text-transform: uppercase;
 letter-spacing: 0.05em;
 }
 
-.secondary-btn { background: rgba(255, 255, 255, 0.08); color: var(--text); }
-.primary-btn, .restart-btn {
+.secondary-btn {
+background: rgba(255, 255, 255, 0.08);
+color: var(--text);
+}
+
+.primary-btn,
+.restart-btn {
 background: linear-gradient(135deg, var(--primary), var(--primary-strong));
 color: #fffaf2;
 }
@@ -461,7 +479,9 @@ padding: 30px 22px;
 text-align: center;
 }
 
-.finish-screen.show { display: block; }
+.finish-screen.show {
+display: block;
+}
 
 .finish-screen h2 {
 margin: 0 0 10px;
@@ -475,22 +495,80 @@ color: var(--muted);
 font-size: 1.05rem;
 }
 
+.confetti-layer {
+position: fixed;
+inset: 0;
+pointer-events: none;
+overflow: hidden;
+z-index: 50;
+}
 
+.confetti-piece {
+position: absolute;
+top: -20px;
+width: 12px;
+height: 20px;
+border-radius: 3px;
+opacity: 0.9;
+animation: confetti-fall 4200ms ease-in forwards;
+}
 
+@keyframes confetti-fall {
+0% {
+transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1);
+opacity: 1;
+}
+100% {
+transform: translate3d(var(--dx), 118vh, 0) rotateZ(720deg) scale(0.8);
+opacity: 0;
+}
+}
 
 @media (max-width: 900px) {
-.board { grid-template-columns: 1fr; }
-.topbar { flex-direction: column; align-items: flex-start; }
-.player-panel { width: 100%; justify-content: space-between; }
+.board {
+grid-template-columns: 1fr;
+}
+
+.topbar {
+flex-direction: column;
+align-items: flex-start;
+}
+
+.player-panel {
+width: 100%;
+justify-content: space-between;
+}
 }
 
 @media (max-width: 560px) {
-.app { width: min(100% - 16px, 1200px); padding-top: 12px; }
-.topbar { padding: 16px; }
-.player-panel { display: grid; width: 100%; grid-template-columns: 1fr; }
-.player-input-wrap input { min-width: 0; width: 100%; }
-.player-actions { width: 100%; }
-.player-confirm-btn, .reset-btn { width: 100%; }
+.app {
+width: min(100% - 16px, 1200px);
+padding-top: 12px;
+}
+
+.topbar {
+padding: 16px;
+}
+
+.player-panel {
+display: grid;
+width: 100%;
+grid-template-columns: 1fr;
+}
+
+.player-input-wrap input {
+min-width: 0;
+width: 100%;
+}
+
+.player-actions {
+width: 100%;
+}
+
+.player-confirm-btn,
+.reset-btn {
+width: 100%;
+}
 }
 </style>
 </head>
@@ -556,7 +634,7 @@ Punkte selbst eintragen
 </div>
 
 <div id="toast" class="toast" aria-live="polite"></div>
-
+<div id="confettiLayer" class="confetti-layer" aria-hidden="true"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -578,17 +656,17 @@ const db = getDatabase(app);
 const STORAGE_KEY = "regenspurge-player-name";
 
 const tasks = [
-  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15, solvedOnce: false, solvedBy: [] },
-  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10, solvedOnce: false, solvedBy: [] },
-  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12, solvedOnce: false, solvedBy: [] },
-  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18, solvedOnce: false, solvedBy: [] },
-  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8, solvedOnce: false, solvedBy: [] },
-  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20, solvedOnce: false, solvedBy: [] },
-  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14, solvedOnce: false, solvedBy: [] },
-  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16, solvedOnce: false, solvedBy: [] },
-  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22, solvedOnce: false, solvedBy: [] },
-  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9, solvedOnce: false, solvedBy: [] },
-  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25, solvedOnce: false, solvedBy: [] }
+  { id: 1, title: "Stadt-Check", image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
+  { id: 2, title: "Kaffeepause", image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10 },
+  { id: 3, title: "Blick auf die Donau", image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12 },
+  { id: 4, title: "Altstadt-Abenteuer", image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18 },
+  { id: 5, title: "Regensburger Snack", image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8 },
+  { id: 6, title: "Foto-Highlight", image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20 },
+  { id: 7, title: "Zusammen mit Freunden", image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14 },
+  { id: 8, title: "Tour durch die Gassen", image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16 },
+  { id: 9, title: "Mit dem Stadtbild feiern", image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22 },
+  { id: 10, title: "Eigenes Punkteritual", image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9 },
+  { id: 11, title: "Finale Überraschung", image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25 }
 ];
 
 const board = document.getElementById("board");
@@ -601,6 +679,7 @@ const confirmText = document.getElementById("confirmText");
 const customPointsWrap = document.getElementById("customPointsWrap");
 const customPointsInput = document.getElementById("customPointsInput");
 const toast = document.getElementById("toast");
+const confettiLayer = document.getElementById("confettiLayer");
 const finishScreen = document.getElementById("finishScreen");
 const finishSummary = document.getElementById("finishSummary");
 const leaderboardList = document.getElementById("leaderboardList");
@@ -611,7 +690,6 @@ let score = 0;
 let pendingTaskId = null;
 let gameStarted = false;
 let resetConfirmationStep = 0;
-let replacementTimeoutId = null;
 
 function normalizePlayerName() {
   return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler";
@@ -638,34 +716,6 @@ function makePlayerKey(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "spieler";
 }
 
-function getSolvedTaskStorageKey() {
-  return `regenspurge-solved-tasks-${makePlayerKey(normalizePlayerName())}`;
-}
-
-function getSolvedTaskIds() {
-  try {
-    const raw = localStorage.getItem(getSolvedTaskStorageKey());
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((value) => Number.isInteger(value)) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveSolvedTaskIds(taskIds) {
-  try {
-    const uniqueIds = [...new Set(taskIds.map((id) => Number(id)).filter(Number.isInteger))];
-    localStorage.setItem(getSolvedTaskStorageKey(), JSON.stringify(uniqueIds));
-  } catch {
-    // ignore localStorage errors
-  }
-}
-
-function hasCurrentPlayerSolvedTask(taskId) {
-  return getSolvedTaskIds().includes(Number(taskId));
-}
-
 function saveScoreToFirebase() {
   const name = normalizePlayerName();
   const key = makePlayerKey(name);
@@ -674,7 +724,7 @@ function saveScoreToFirebase() {
     score,
     updatedAt: Date.now()
   }).catch(() => {
-    // silent fail
+    // silently fail for local play if Firebase is unavailable
   });
 }
 
@@ -697,15 +747,19 @@ function renderLeaderboard(entries) {
 
 function subscribeToLeaderboard() {
   const leaderboardRef = ref(db, "leaderboard");
-  onValue(leaderboardRef, (snapshot) => {
-    const data = snapshot.val() || {};
-    const entries = Object.values(data)
-      .filter((entry) => entry && typeof entry.score === "number")
-      .sort((a, b) => b.score - a.score);
-    renderLeaderboard(entries);
-  }, () => {
-    renderLeaderboard([]);
-  });
+  onValue(
+    leaderboardRef,
+    (snapshot) => {
+      const data = snapshot.val() || {};
+      const entries = Object.values(data)
+        .filter((entry) => entry && typeof entry.score === "number")
+        .sort((a, b) => b.score - a.score);
+      renderLeaderboard(entries);
+    },
+    () => {
+      renderLeaderboard([]);
+    }
+  );
 }
 
 function shuffleArray(array) {
@@ -741,38 +795,29 @@ function showToast(message) {
   }, 1800);
 }
 
+function createConfettiBurst() {
+  const colors = ["#f0c75e", "#ef8a5b", "#c7d66d", "#8ab7d3", "#d889b6", "#7bbf9b", "#e3b0a8"];
 
-function roundUpHalf(value) {
-  return Math.ceil(value * 0.5);
-}
+  for (let i = 0; i < 1000; i += 1) {
+    const piece = document.createElement("span");
+    piece.className = "confetti-piece";
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.setProperty("--dx", `${(Math.random() - 0.5) * 900}px`);
+    confettiLayer.appendChild(piece);
 
-function calculateTaskReward(task) {
-  const alreadyTriggered = !!task.solvedOnce;
-
-  if (!alreadyTriggered) {
-    if (task.timeMinutes > 5) {
-      task.timeMinutes = 5;
-    }
-    task.solvedOnce = true;
-    return roundUpHalf(task.points);
+    setTimeout(() => {
+      piece.remove();
+    }, 5000);
   }
-
-  return task.points;
 }
 
 function openConfirm(taskId) {
   const selectedTask = activeTasks.find((task) => task.id === taskId);
   if (!selectedTask || selectedTask.status !== "active") return;
 
-  if (hasCurrentPlayerSolvedTask(taskId)) {
-    showToast("Diese Aufgabe wurde bereits von dir gelöst.");
-    return;
-  }
-
   pendingTaskId = taskId;
-  confirmText.textContent = 
-    `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${calculateTaskReward({ 
-      ...selectedTask, solvedOnce: selectedTask.solvedOnce || false })} Punkte.`}`;
+  confirmText.textContent = `"${selectedTask.title}" ist erledigt. ${selectedTask.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${selectedTask.points} Punkte.`}`;
 
   if (selectedTask.customPoints) {
     customPointsWrap.classList.add("show");
@@ -789,28 +834,11 @@ function closeConfirm() {
   confirmModal.classList.remove("show");
 }
 
-function scheduleReplacement(taskId) {
-  if (replacementTimeoutId) {
-    clearTimeout(replacementTimeoutId);
-  }
-
-  replacementTimeoutId = setTimeout(() => {
-    activeTasks = activeTasks.filter((task) => task.id !== taskId);
-    refillBoard();
-  }, 1500);
-}
-
 function confirmTaskCompletion() {
   if (pendingTaskId === null) return;
 
   const task = activeTasks.find((entry) => entry.id === pendingTaskId);
   if (!task) {
-    closeConfirm();
-    return;
-  }
-
-  if (hasCurrentPlayerSolvedTask(task.id)) {
-    showToast("Diese Aufgabe wurde bereits von dir gelöst.");
     closeConfirm();
     return;
   }
@@ -824,25 +852,20 @@ function confirmTaskCompletion() {
       return;
     }
     pointsToAward = parsed;
-  } else {
-    pointsToAward = calculateTaskReward(task);
   }
-
-  const solvedIds = getSolvedTaskIds();
-  solvedIds.push(task.id);
-  saveSolvedTaskIds(solvedIds);
 
   task.status = "done";
   task.pointsAwarded = pointsToAward;
-  task.solvedBy.push(normalizePlayerName());
   score += pointsToAward;
   updateScore();
   saveScoreToFirebase();
 
-    showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
+  createConfettiBurst();
+  showToast(`${task.title} abgeschlossen! +${pointsToAward} Punkte`);
 
+  activeTasks = activeTasks.filter((entry) => entry.id !== task.id);
   closeConfirm();
-  scheduleReplacement(task.id);
+  refillBoard();
 }
 
 function expireTask(taskId) {
@@ -861,8 +884,11 @@ function refillBoard() {
   while (activeTasks.length < 3 && remainingTasks.length > 0) {
     const nextTask = remainingTasks.shift();
     if (!nextTask) break;
+
+    const durationMs = (nextTask.timeMinutes ?? 15) * 60 * 1000;
+
     nextTask.status = "active";
-    nextTask.deadline = Date.now() + (nextTask.timeMinutes ?? 15) * 60 * 1000;
+    nextTask.deadline = Date.now() + durationMs;
     activeTasks.push(nextTask);
   }
 
@@ -933,7 +959,9 @@ function confirmPlayerName() {
   const safeName = normalizePlayerName();
   saveStoredPlayerName(safeName);
   document.title = `${safeName} | RegensPurge`;
-  if (gameStarted) saveScoreToFirebase();
+  if (gameStarted) {
+    saveScoreToFirebase();
+  }
   showToast(`Spielername gespeichert: ${safeName}`);
 }
 
@@ -944,6 +972,7 @@ function requestResetConfirmation() {
       resetConfirmationStep = 0;
       return;
     }
+
     resetConfirmationStep = 1;
     showToast("Noch einmal bestätigen!");
     return;
@@ -960,11 +989,16 @@ function requestResetConfirmation() {
 }
 
 function resetAllData() {
-  try { localStorage.removeItem(getSolvedTaskStorageKey()); } catch {}
-  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
 
   const allLeaderboardRef = ref(db, "leaderboard");
-  set(allLeaderboardRef, null).catch(() => {});
+  set(allLeaderboardRef, null).catch(() => {
+    // ignore reset errors
+  });
 
   playerNameInput.value = "Spieler";
   document.title = "RegensPurge";
@@ -987,6 +1021,7 @@ playerNameInput.addEventListener("input", () => {
 });
 
 playerNameConfirmBtn.addEventListener("click", confirmPlayerName);
+
 board.addEventListener("click", (event) => {
   const button = event.target.closest("[data-task-id]");
   if (!button) return;
