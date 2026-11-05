@@ -1,45 +1,1154 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RegensPurge</title>
-<style>
-:root{--bg-dark:#1b1a17;--primary:#d7b36a;--primary-strong:#b98245;--text:#fffaf2;--muted:#f4e4c8;--shadow:0 18px 34px rgba(24,18,12,.28);--gold-soft:#f5d58f}*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:var(--text);background-color:var(--bg-dark)}body{min-height:100vh;background-image:url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");background-size:cover;background-position:center;background-attachment:fixed}.page-overlay{position:fixed;inset:0;background:linear-gradient(135deg,rgba(24,18,15,.7),rgba(39,30,24,.55));z-index:0}.app{position:relative;z-index:1;width:min(1200px,calc(100% - 24px));margin:0 auto;padding:20px 0 40px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;background:rgba(57,44,33,.72);backdrop-filter:blur(8px);border:1px solid rgba(255,243,222,.12);border-radius:24px;padding:18px 22px;box-shadow:var(--shadow)}.title-wrap{display:flex;flex-direction:column;gap:6px}.title{font-size:clamp(2rem,3vw,3rem);font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin:0;color:var(--gold-soft);text-shadow:0 6px 18px rgba(24,18,12,.28)}.subtitle{margin:0;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.player-panel,.player-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.player-actions{align-items:end;gap:10px}.player-input-wrap{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}.player-input-wrap input,.custom-points input{border:1px solid rgba(255,248,236,.18);background:rgba(40,31,26,.8);color:var(--text);border-radius:14px;padding:12px 14px;font-size:1rem;min-width:220px;outline:none}.player-confirm-btn,.reset-btn,.secondary-btn,.primary-btn,.restart-btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;font-size:.76rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}.player-confirm-btn,.secondary-btn{background:rgba(255,255,255,.08);color:var(--text)}.reset-btn{background:linear-gradient(135deg,rgba(184,103,93,.9),rgba(121,69,62,.9));color:#fffaf2;box-shadow:0 10px 18px rgba(166,95,84,.22)}.score-box{min-width:150px;background:linear-gradient(135deg,rgba(214,152,113,.22),rgba(164,122,82,.22));border:1px solid rgba(214,152,113,.35);border-radius:18px;padding:10px 16px;text-align:center}.score-label{display:block;color:var(--muted);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}.score-value{font-size:clamp(1.8rem,2vw,2.4rem);font-weight:900}.leaderboard-panel{margin-top:18px;background:rgba(57,44,33,.72);border:1px solid rgba(255,243,222,.12);border-radius:24px;padding:18px 20px;box-shadow:var(--shadow)}.leaderboard-title{margin:0 0 12px;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}.leaderboard-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;padding:0;margin:0}.leaderboard-item{display:flex;justify-content:space-between;gap:12px;align-items:center;background:rgba(255,255,255,.04);border-radius:14px;padding:10px 12px;border:1px solid rgba(255,243,222,.08)}.leaderboard-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{color:var(--gold-soft);font-weight:900}.board{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:22px;margin-top:24px}.task-card{display:flex;flex-direction:column;min-height:540px;background:linear-gradient(180deg,rgba(245,233,214,.96),rgba(234,222,202,.94));color:#2e1f16;border:1px solid rgba(89,66,49,.2);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}.card-image-wrap{width:100%;aspect-ratio:1/1.5;background:rgba(255,255,255,.18);border-bottom:1px solid rgba(79,58,43,.18);overflow:hidden}.card-image-wrap img{width:100%;height:100%;object-fit:cover;display:block}.task-body{display:flex;flex:1;flex-direction:column;padding:18px 18px 16px}.task-title{margin:0 0 10px;font-size:1.35rem;font-weight:800}.task-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.badge{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;background:rgba(162,128,82,.14);color:#4d3528;border:1px solid rgba(162,128,82,.28);border-radius:999px;font-weight:700;font-size:.8rem}.timer{color:#5e4738;font-weight:800;font-size:.96rem;text-align:right}.timer.warning{color:#a46a3d}.timer.danger{color:#b54b42}.task-button{margin-top:auto;width:100%;border:0;border-radius:14px;padding:16px 18px;background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:#fffaf2;font-weight:900;font-size:1rem;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;box-shadow:0 10px 18px rgba(146,96,42,.2)}.task-button:disabled{background:#8c8173;box-shadow:none;cursor:not-allowed}.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(26,20,17,.64);z-index:20}.modal.show{display:flex}.modal-card{width:min(420px,calc(100% - 28px));background:linear-gradient(180deg,rgba(61,46,36,.96),rgba(46,34,28,.96));border:1px solid rgba(255,243,222,.12);border-radius:22px;box-shadow:var(--shadow);padding:22px 20px 18px}.modal-card h3{margin:0 0 10px;font-size:1.55rem;color:#fff4df}.modal-card p{margin:0 0 16px;color:var(--muted);line-height:1.5}.custom-points{display:none;margin-bottom:16px}.custom-points.show{display:block}.custom-points label{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}.custom-points input{width:100%;min-width:0}.modal-actions{display:flex;justify-content:flex-end;gap:10px}.primary-btn,.restart-btn{background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:#fffaf2}.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:rgba(36,28,23,.96);border:1px solid rgba(255,243,222,.12);color:var(--text);border-radius:999px;padding:12px 20px;font-weight:700;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:25}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.finish-screen{display:none;margin-top:24px;background:rgba(56,43,35,.8);border:1px solid rgba(255,243,222,.12);border-radius:24px;box-shadow:var(--shadow);padding:30px 22px;text-align:center}.finish-screen.show{display:block}.finish-screen h2{margin:0 0 10px;font-size:clamp(2rem,3vw,2.8rem);color:#fff5dd}.finish-screen p{margin:0 0 20px;color:var(--muted);font-size:1.05rem}@media(max-width:900px){.board{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.player-panel{width:100%;justify-content:space-between}}@media(max-width:560px){.app{width:min(100% - 16px,1200px);padding-top:12px}.topbar{padding:16px}.player-panel{display:grid;width:100%;grid-template-columns:1fr}.player-input-wrap input{min-width:0;width:100%}.player-actions{width:100%}.player-confirm-btn,.reset-btn{width:100%}}
-</style>
-</head>
-<body>
-<div class="page-overlay"></div>
-<div class="app">
-<header class="topbar"><div class="title-wrap"><h1 class="title">RegensPurge</h1><p class="subtitle">Missionen, Punkte & Abenteuer</p></div>
-<div class="player-panel"><div class="player-actions"><label class="player-input-wrap">Spielername<input id="playerNameInput" type="text" value="Spieler" maxlength="22" /></label><button id="playerNameConfirmBtn" class="player-confirm-btn" type="button">Bestätigen</button></div><button id="resetAllBtn" class="reset-btn" type="button">Daten löschen</button><div class="score-box"><span class="score-label">Punkte</span><span id="scoreValue" class="score-value">0</span></div></div></header>
-<section class="leaderboard-panel"><h2 class="leaderboard-title">Bestenliste</h2><ol id="leaderboardList" class="leaderboard-list"></ol></section>
-<main id="board" class="board" aria-live="polite"></main>
-<section id="finishScreen" class="finish-screen"><h2>Runde beendet!</h2><p id="finishSummary">Du hast 0 Punkte gesammelt.</p><button id="newGameBtn" class="restart-btn" type="button">Neues Spiel</button></section>
-</div>
-<div id="confirmModal" class="modal" aria-modal="true" role="dialog"><div class="modal-card"><h3>Aufgabe erledigt?</h3><p id="confirmText">Bist du sicher?</p><div id="customPointsWrap" class="custom-points"><label>Punkte selbst eintragen<input id="customPointsInput" type="number" min="0" step="5" value="0" /></label></div><div class="modal-actions"><button id="cancelConfirmBtn" class="secondary-btn" type="button">Abbrechen</button><button id="confirmBtn" class="primary-btn" type="button">Bestätigen</button></div></div></div>
-<div id="toast" class="toast" aria-live="polite"></div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-const firebaseConfig={apiKey:"AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",authDomain:"regenspurge.firebaseapp.com",databaseURL:"https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",projectId:"regenspurge",storageBucket:"regenspurge.firebasestorage.app",messagingSenderId:"706439523349",appId:"1:706439523349:web:0db0ac82a9241ee184321c",measurementId:"G-K758M4BMPZ"};
-const app=initializeApp(firebaseConfig);const db=getDatabase(app);const GAME_REF=ref(db,"gameState");const STORAGE_KEY="regenspurge-player-name";const SECOND_PLAYER_TIME_MS=5*60*1000;
-const tasks=[{id:1,title:"Stadt-Check",image:"card-small(1).png",points:20,customPoints:false,timeMinutes:15},{id:2,title:"Kaffeepause",image:"card-small (2).png",points:25,customPoints:false,timeMinutes:10},{id:3,title:"Blick auf die Donau",image:"card-small (3).png",points:30,customPoints:false,timeMinutes:12},{id:4,title:"Altstadt-Abenteuer",image:"card-small (4).png",points:35,customPoints:false,timeMinutes:18},{id:5,title:"Regensburger Snack",image:"card-small (5).png",points:40,customPoints:false,timeMinutes:8},{id:6,title:"Foto-Highlight",image:"card-small (6).png",points:25,customPoints:false,timeMinutes:20},{id:7,title:"Zusammen mit Freunden",image:"card-small (7).png",points:30,customPoints:false,timeMinutes:14},{id:8,title:"Tour durch die Gassen",image:"card-small (8).png",points:20,customPoints:false,timeMinutes:16},{id:9,title:"Mit dem Stadtbild feiern",image:"card-small (9).png",points:45,customPoints:false,timeMinutes:22},{id:10,title:"Eigenes Punkteritual",image:"card-small (10).png",points:15,customPoints:true,timeMinutes:9},{id:11,title:"Finale Überraschung",image:"card-small (11).png",points:50,customPoints:true,timeMinutes:25}];
-const byId=Object.fromEntries(tasks.map(task=>[task.id,task]));const board=document.getElementById("board"),scoreValue=document.getElementById("scoreValue"),playerNameInput=document.getElementById("playerNameInput"),playerNameConfirmBtn=document.getElementById("playerNameConfirmBtn"),resetAllBtn=document.getElementById("resetAllBtn"),confirmModal=document.getElementById("confirmModal"),confirmText=document.getElementById("confirmText"),customPointsWrap=document.getElementById("customPointsWrap"),customPointsInput=document.getElementById("customPointsInput"),toast=document.getElementById("toast"),finishScreen=document.getElementById("finishScreen"),finishSummary=document.getElementById("finishSummary"),leaderboardList=document.getElementById("leaderboardList");
-let sharedState=null,pendingTaskId=null,resetConfirmationStep=0,initializing=false;
-function normalizePlayerName(){return(playerNameInput.value||"Spieler").trim().slice(0,22)||"Spieler"}function makePlayerKey(name){return name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"")||"spieler"}function playerKey(){return makePlayerKey(normalizePlayerName())}function readStoredPlayerName(){try{const value=localStorage.getItem(STORAGE_KEY);return value?value.trim().slice(0,22)||"Spieler":"Spieler"}catch{return"Spieler"}}function saveStoredPlayerName(name){try{localStorage.setItem(STORAGE_KEY,name)}catch{}}function shuffleArray(array){const result=[...array];for(let i=result.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[result[i],result[j]]=[result[j],result[i]]}return result}function formatTimer(ms){const s=Math.max(0,Math.ceil(ms/1000));return`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`}function showToast(message){toast.textContent=message;toast.classList.add("show");clearTimeout(showToast.timeoutId);showToast.timeoutId=setTimeout(()=>toast.classList.remove("show"),2200)}function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}function saveLeaderboardScore(value){const name=normalizePlayerName();set(ref(db,`leaderboard/${playerKey()}`),{name,score:value,updatedAt:Date.now()}).catch(()=>showToast("Punktestand konnte nicht synchronisiert werden."))}function renderLeaderboard(data){const entries=Object.values(data||{}).filter(item=>item&&typeof item.score==="number").sort((a,b)=>b.score-a.score).slice(0,5);leaderboardList.innerHTML=entries.length?entries.map((entry,i)=>`<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${escapeHtml(entry.name||"Spieler")}</span><span class="leaderboard-score">${entry.score}</span></li>`).join(""):'<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>'}
-function makeNewState(){const ids=shuffleArray(tasks.map(task=>task.id));const activeTasks={};for(const id of ids.splice(0,3))activeTasks[id]=makeActiveTask(id);return{activeTasks,remainingTaskIds:ids,playerScores:{},startedAt:Date.now(),finished:false}}
-function makeActiveTask(id){const task=byId[id];return{deadline:Date.now()+task.timeMinutes*60000,points:task.points,customPoints:task.customPoints,completionCount:0,completedBy:{}}}function normalizeState(state){if(!state||typeof state!=="object")return null;return{...state,activeTasks:state.activeTasks||{},remainingTaskIds:Array.isArray(state.remainingTaskIds)?state.remainingTaskIds:[],playerScores:state.playerScores||{},finished:Boolean(state.finished),startedAt:state.startedAt||Date.now()}}
-function renderBoard(){const state=normalizeState(sharedState);if(!state){board.innerHTML="";scoreValue.textContent="0";return}const key=playerKey(),currentScore=Number(state.playerScores[key]||0);scoreValue.textContent=String(currentScore);const active=Object.entries(state.activeTasks).filter(([id])=>byId[id]).map(([id,task])=>({...byId[id],...task,id:Number(id)}));board.innerHTML=active.map(task=>{const remaining=Math.max(0,task.deadline-Date.now()),warning=remaining<=60000&&remaining>30000,danger=remaining<=30000,count=Number(task.completionCount||0),doneByMe=Boolean(task.completedBy&&task.completedBy[key]),label=count===0?(task.customPoints?"Eigenpunkte":`${task.points} P`):`Weitere Spieler: ${task.points} P`,buttonText=doneByMe?"Von dir erledigt":count>0?"Auch erledigt":"Aufgabe erledigt";return`<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="${escapeHtml(task.title)}" /></div><div class="task-body"><h2 class="task-title">${escapeHtml(task.title)}</h2><div class="task-meta"><span class="badge">${label}</span><span class="timer ${warning?"warning":""} ${danger?"danger":""}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${doneByMe?"disabled":""}>${buttonText}</button></div></article>`}).join("");if(state.finished){finishScreen.classList.add("show");finishSummary.textContent=`${normalizePlayerName()}, du hast insgesamt ${currentScore} Punkte gesammelt.`}else finishScreen.classList.remove("show")}
-async function initializeGameIfNeeded(){if(initializing)return;initializing=true;try{await runTransaction(GAME_REF,current=>current||makeNewState())}catch{showToast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen.")}finally{initializing=false}}
-function openConfirm(id){const task=normalizeState(sharedState)?.activeTasks?.[id];if(!task||task.completedBy?.[playerKey()]||task.deadline<=Date.now())return;pendingTaskId=Number(id);const repeated=Number(task.completionCount||0)>0;confirmText.textContent=repeated?`Diese Aufgabe wurde bereits erledigt. Du erhältst ${task.points} Punkte.`:`"${byId[id].title}" ist erledigt. ${task.customPoints?"Trage die Punkte selbst ein.":`Du bekommst ${task.points} Punkte.`}`;if(task.customPoints&&!repeated){customPointsWrap.classList.add("show");customPointsInput.value=String(task.points)}else customPointsWrap.classList.remove("show");confirmModal.classList.add("show")}
-function closeConfirm(){pendingTaskId=null;confirmModal.classList.remove("show")}
-async function confirmTaskCompletion(){if(pendingTaskId===null)return;const id=pendingTaskId,key=playerKey(),localTask=normalizeState(sharedState)?.activeTasks?.[id],isCustomFirst=Number(localTask?.completionCount||0)===0&&localTask?.customPoints,enteredPoints=Number(customPointsInput.value);if(isCustomFirst&&(!Number.isFinite(enteredPoints)||enteredPoints<0)){showToast("Bitte gültige Punkte eingeben.");return}closeConfirm();let awarded=0;try{const result=await runTransaction(GAME_REF,current=>{const state=normalizeState(current),task=state?.activeTasks?.[id];if(!task||task.deadline<=Date.now()||task.completedBy?.[key])return;const first=Number(task.completionCount||0)===0;awarded=first&&task.customPoints?enteredPoints:Number(task.points);task.completionCount=Number(task.completionCount||0)+1;task.completedBy={...(task.completedBy||{}),[key]:true};if(first){task.points=Math.ceil(awarded/2);task.customPoints=false;const now=Date.now();if(task.deadline-now>SECOND_PLAYER_TIME_MS)task.deadline=now+SECOND_PLAYER_TIME_MS}state.playerScores[key]=Number(state.playerScores[key]||0)+awarded;return state},{applyLocally:false});if(!result.committed){showToast("Aufgabe ist abgelaufen oder wurde bereits von dir erledigt.");return}saveLeaderboardScore(Number(result.snapshot.val()?.playerScores?.[key]||0));showToast(`Aufgabe erledigt! +${awarded} Punkte`)}catch{showToast("Erledigung konnte nicht gespeichert werden. Verbindung prüfen.")}}
-async function advanceExpiredTasks(){try{await runTransaction(GAME_REF,current=>{const state=normalizeState(current);if(!state||state.finished)return;const now=Date.now();for(const[id,task]of Object.entries(state.activeTasks)){if(Number(task.deadline)<=now)delete state.activeTasks[id]}while(Object.keys(state.activeTasks).length<3&&state.remainingTaskIds.length){const id=state.remainingTaskIds.shift();state.activeTasks[id]=makeActiveTask(id)}if(!Object.keys(state.activeTasks).length&&!state.remainingTaskIds.length)state.finished=true;return state},{applyLocally:false})}catch{}}
-async function startNewSharedGame(){if(!window.confirm("Ein neues gemeinsames Spiel starten? Der aktuelle Spielstand wird für alle zurückgesetzt."))return;try{await runTransaction(GAME_REF,()=>makeNewState(),{applyLocally:false});showToast("Neues gemeinsames Spiel gestartet.")}catch{showToast("Neues Spiel konnte nicht gestartet werden.")}}
-function requestResetConfirmation(){if(resetConfirmationStep===0){if(!window.confirm("Wirklich das gemeinsame Spiel und alle Bestwerte für alle löschen?"))return;resetConfirmationStep=1;showToast("Zur endgültigen Löschung erneut klicken.");return}resetConfirmationStep=0;if(!window.confirm("Letzte Bestätigung: Spielstand und Bestenliste endgültig löschen?"))return;Promise.all([set(GAME_REF,makeNewState()),set(ref(db,"leaderboard"),null)]).then(()=>showToast("Gemeinsames Spiel und Bestenliste zurückgesetzt.")).catch(()=>showToast("Zurücksetzen fehlgeschlagen."))}
-function confirmPlayerName(){const name=normalizePlayerName();saveStoredPlayerName(name);document.title=`${name} | RegensPurge`;renderBoard();showToast(`Spielername gespeichert: ${name}`)}
-playerNameInput.addEventListener("input",()=>{const name=playerNameInput.value.trim().slice(0,22);document.title=name?`${name} | RegensPurge`:"RegensPurge";renderBoard()});playerNameConfirmBtn.addEventListener("click",confirmPlayerName);board.addEventListener("click",event=>{const button=event.target.closest("[data-task-id]");if(button&&!button.disabled)openConfirm(button.dataset.taskId)});document.getElementById("cancelConfirmBtn").addEventListener("click",closeConfirm);document.getElementById("confirmBtn").addEventListener("click",confirmTaskCompletion);document.getElementById("newGameBtn").addEventListener("click",startNewSharedGame);resetAllBtn.addEventListener("click",requestResetConfirmation);playerNameInput.value=readStoredPlayerName();document.title=`${playerNameInput.value||"Spieler"} | RegensPurge`;onValue(GAME_REF,snapshot=>{sharedState=snapshot.val();if(!sharedState)initializeGameIfNeeded();renderBoard()});onValue(ref(db,"leaderboard"),snapshot=>renderLeaderboard(snapshot.val()||{}),()=>renderLeaderboard({}));initializeGameIfNeeded();setInterval(()=>{advanceExpiredTasks();renderBoard()},1000);
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RegensPurge</title>
+    <style>
+      :root {
+        --bg-dark: #1b1a17;
+        --primary: #d7b36a;
+        --primary-strong: #b98245;
+        --text: #fffaf2;
+        --muted: #f4e4c8;
+        --shadow: 0 18px 34px rgba(24, 18, 12, 0.28);
+        --gold-soft: #f5d58f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background-color: var(--bg-dark);
+      }
+
+      body {
+        min-height: 100vh;
+        background-image: url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+
+      .page-overlay {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(24, 18, 15, 0.7),
+          rgba(39, 30, 24, 0.55)
+        );
+        z-index: 0;
+      }
+
+      .app {
+        position: relative;
+        z-index: 1;
+        width: min(1200px, calc(100% - 24px));
+        margin: 0 auto;
+        padding: 20px 0 40px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        background: rgba(57, 44, 33, 0.72);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        border-radius: 24px;
+        padding: 18px 22px;
+        box-shadow: var(--shadow);
+      }
+
+      .title-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .title {
+        font-size: clamp(2rem, 3vw, 3rem);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0;
+        color: var(--gold-soft);
+        text-shadow: 0 6px 18px rgba(24, 18, 12, 0.28);
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .player-panel,
+      .player-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .player-actions {
+        align-items: end;
+        gap: 10px;
+      }
+
+      .player-input-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .player-input-wrap input,
+      .custom-points input {
+        border: 1px solid rgba(255, 248, 236, 0.18);
+        background: rgba(40, 31, 26, 0.8);
+        color: var(--text);
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 1rem;
+        min-width: 220px;
+        outline: none;
+      }
+
+      .player-confirm-btn,
+      .reset-btn,
+      .secondary-btn,
+      .primary-btn,
+      .restart-btn {
+        border: 0;
+        border-radius: 12px;
+        padding: 11px 14px;
+        font-weight: 800;
+        font-size: 0.76rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .player-confirm-btn,
+      .secondary-btn {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+      }
+
+      .reset-btn {
+        background: linear-gradient(
+          135deg,
+          rgba(184, 103, 93, 0.9),
+          rgba(121, 69, 62, 0.9)
+        );
+        color: #fffaf2;
+        box-shadow: 0 10px 18px rgba(166, 95, 84, 0.22);
+      }
+
+      .score-box {
+        min-width: 150px;
+        background: linear-gradient(
+          135deg,
+          rgba(214, 152, 113, 0.22),
+          rgba(164, 122, 82, 0.22)
+        );
+        border: 1px solid rgba(214, 152, 113, 0.35);
+        border-radius: 18px;
+        padding: 10px 16px;
+        text-align: center;
+      }
+
+      .score-label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .score-value {
+        font-size: clamp(1.8rem, 2vw, 2.4rem);
+        font-weight: 900;
+      }
+
+      .leaderboard-panel {
+        margin-top: 18px;
+        background: rgba(57, 44, 33, 0.72);
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        border-radius: 24px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .leaderboard-title {
+        margin: 0 0 12px;
+        font-size: 0.8rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .leaderboard-list {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        padding: 0;
+        margin: 0;
+      }
+
+      .leaderboard-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 243, 222, 0.08);
+      }
+
+      .leaderboard-name {
+        font-weight: 700;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .leaderboard-score {
+        color: var(--gold-soft);
+        font-weight: 900;
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+        gap: 22px;
+        margin-top: 24px;
+      }
+
+      .task-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 540px;
+        background: linear-gradient(
+          180deg,
+          rgba(245, 233, 214, 0.96),
+          rgba(234, 222, 202, 0.94)
+        );
+        color: #2e1f16;
+        border: 1px solid rgba(89, 66, 49, 0.2);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+      }
+
+      .card-image-wrap {
+        width: 100%;
+        aspect-ratio: 1 / 1.5;
+        background: rgba(255, 255, 255, 0.18);
+        border-bottom: 1px solid rgba(79, 58, 43, 0.18);
+        overflow: hidden;
+      }
+
+      .card-image-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .task-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 18px 18px 16px;
+      }
+
+      .task-title {
+        margin: 0 0 10px;
+        font-size: 1.35rem;
+        font-weight: 800;
+      }
+
+      .task-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        background: rgba(162, 128, 82, 0.14);
+        color: #4d3528;
+        border: 1px solid rgba(162, 128, 82, 0.28);
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+
+      .timer {
+        color: #5e4738;
+        font-weight: 800;
+        font-size: 0.96rem;
+        text-align: right;
+      }
+
+      .timer.warning {
+        color: #a46a3d;
+      }
+
+      .timer.danger {
+        color: #b54b42;
+      }
+
+      .task-button {
+        margin-top: auto;
+        width: 100%;
+        border: 0;
+        border-radius: 14px;
+        padding: 16px 18px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        color: #fffaf2;
+        font-weight: 900;
+        font-size: 1rem;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        box-shadow: 0 10px 18px rgba(146, 96, 42, 0.2);
+      }
+
+      .task-button:disabled {
+        background: #8c8173;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(26, 20, 17, 0.64);
+        z-index: 20;
+      }
+
+      .modal.show {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(420px, calc(100% - 28px));
+        background: linear-gradient(
+          180deg,
+          rgba(61, 46, 36, 0.96),
+          rgba(46, 34, 28, 0.96)
+        );
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        padding: 22px 20px 18px;
+      }
+
+      .modal-card h3 {
+        margin: 0 0 10px;
+        font-size: 1.55rem;
+        color: #fff4df;
+      }
+
+      .modal-card p {
+        margin: 0 0 16px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .custom-points {
+        display: none;
+        margin-bottom: 16px;
+      }
+
+      .custom-points.show {
+        display: block;
+      }
+
+      .custom-points label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .custom-points input {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+      }
+
+      .primary-btn,
+      .restart-btn {
+        background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        color: #fffaf2;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        transform: translateX(-50%) translateY(20px);
+        background: rgba(36, 28, 23, 0.96);
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 12px 20px;
+        font-weight: 700;
+        box-shadow: var(--shadow);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s, transform 0.2s;
+        z-index: 25;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .finish-screen {
+        display: none;
+        margin-top: 24px;
+        background: rgba(56, 43, 35, 0.8);
+        border: 1px solid rgba(255, 243, 222, 0.12);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 30px 22px;
+        text-align: center;
+      }
+
+      .finish-screen.show {
+        display: block;
+      }
+
+      .finish-screen h2 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        color: #fff5dd;
+      }
+
+      .finish-screen p {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 1.05rem;
+      }
+
+      @media (max-width: 900px) {
+        .board {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .player-panel {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .app {
+          width: min(100% - 16px, 1200px);
+          padding-top: 12px;
+        }
+
+        .topbar {
+          padding: 16px;
+        }
+
+        .player-panel {
+          display: grid;
+          width: 100%;
+          grid-template-columns: 1fr;
+        }
+
+        .player-input-wrap input {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .player-actions {
+          width: 100%;
+        }
+
+        .player-confirm-btn,
+        .reset-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-overlay"></div>
+    <div class="app">
+      <header class="topbar">
+        <div class="title-wrap">
+          <h1 class="title">RegensPurge</h1>
+          <p class="subtitle">Missionen, Punkte &amp; Abenteuer</p>
+        </div>
+        <div class="player-panel">
+          <div class="player-actions">
+            <label class="player-input-wrap">
+              Spielername
+              <input
+                id="playerNameInput"
+                type="text"
+                value="Spieler"
+                maxlength="22"
+              />
+            </label>
+            <button
+              id="playerNameConfirmBtn"
+              class="player-confirm-btn"
+              type="button"
+            >
+              Bestätigen
+            </button>
+          </div>
+          <button id="resetAllBtn" class="reset-btn" type="button">
+            Daten löschen
+          </button>
+          <div class="score-box">
+            <span class="score-label">Punkte</span>
+            <span id="scoreValue" class="score-value">0</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="leaderboard-panel">
+        <h2 class="leaderboard-title">Bestenliste</h2>
+        <ol id="leaderboardList" class="leaderboard-list"></ol>
+      </section>
+
+      <main id="board" class="board" aria-live="polite"></main>
+
+      <section id="finishScreen" class="finish-screen">
+        <h2>Runde beendet!</h2>
+        <p id="finishSummary">Du hast 0 Punkte gesammelt.</p>
+        <button id="newGameBtn" class="restart-btn" type="button">
+          Neues Spiel
+        </button>
+      </section>
+    </div>
+
+    <div id="confirmModal" class="modal" aria-modal="true" role="dialog">
+      <div class="modal-card">
+        <h3>Aufgabe erledigt?</h3>
+        <p id="confirmText">Bist du sicher?</p>
+        <div id="customPointsWrap" class="custom-points">
+          <label>
+            Punkte selbst eintragen
+            <input id="customPointsInput" type="number" min="0" step="5" value="0" />
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button id="cancelConfirmBtn" class="secondary-btn" type="button">
+            Abbrechen
+          </button>
+          <button id="confirmBtn" class="primary-btn" type="button">
+            Bestätigen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        set,
+        onValue,
+        runTransaction,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDXyTteMhe2rotr64TMQ6w5mGoUCTDDrrA",
+        authDomain: "regenspurge.firebaseapp.com",
+        databaseURL:
+          "https://regenspurge-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "regenspurge",
+        storageBucket: "regenspurge.firebasestorage.app",
+        messagingSenderId: "706439523349",
+        appId: "1:706439523349:web:0db0ac82a9241ee184321c",
+        measurementId: "G-K758M4BMPZ",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const GAME_REF = ref(db, "gameState");
+      const STORAGE_KEY = "regenspurge-player-name";
+      const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
+
+      const tasks = [
+        {
+          id: 1,
+          title: "Stadt-Check",
+          image: "card-small(1).png",
+          points: 20,
+          customPoints: false,
+          timeMinutes: 15,
+        },
+        {
+          id: 2,
+          title: "Kaffeepause",
+          image: "card-small (2).png",
+          points: 25,
+          customPoints: false,
+          timeMinutes: 10,
+        },
+        {
+          id: 3,
+          title: "Blick auf die Donau",
+          image: "card-small (3).png",
+          points: 30,
+          customPoints: false,
+          timeMinutes: 12,
+        },
+        {
+          id: 4,
+          title: "Altstadt-Abenteuer",
+          image: "card-small (4).png",
+          points: 35,
+          customPoints: false,
+          timeMinutes: 18,
+        },
+        {
+          id: 5,
+          title: "Regensburger Snack",
+          image: "card-small (5).png",
+          points: 40,
+          customPoints: false,
+          timeMinutes: 8,
+        },
+        {
+          id: 6,
+          title: "Foto-Highlight",
+          image: "card-small (6).png",
+          points: 25,
+          customPoints: false,
+          timeMinutes: 20,
+        },
+        {
+          id: 7,
+          title: "Zusammen mit Freunden",
+          image: "card-small (7).png",
+          points: 30,
+          customPoints: false,
+          timeMinutes: 14,
+        },
+        {
+          id: 8,
+          title: "Tour durch die Gassen",
+          image: "card-small (8).png",
+          points: 20,
+          customPoints: false,
+          timeMinutes: 16,
+        },
+        {
+          id: 9,
+          title: "Mit dem Stadtbild feiern",
+          image: "card-small (9).png",
+          points: 45,
+          customPoints: false,
+          timeMinutes: 22,
+        },
+        {
+          id: 10,
+          title: "Eigenes Punkteritual",
+          image: "card-small (10).png",
+          points: 15,
+          customPoints: true,
+          timeMinutes: 9,
+        },
+        {
+          id: 11,
+          title: "Finale Überraschung",
+          image: "card-small (11).png",
+          points: 50,
+          customPoints: true,
+          timeMinutes: 25,
+        },
+      ];
+
+      const byId = Object.fromEntries(tasks.map((task) => [task.id, task]));
+      const board = document.getElementById("board");
+      const scoreValue = document.getElementById("scoreValue");
+      const playerNameInput = document.getElementById("playerNameInput");
+      const playerNameConfirmBtn = document.getElementById("playerNameConfirmBtn");
+      const resetAllBtn = document.getElementById("resetAllBtn");
+      const confirmModal = document.getElementById("confirmModal");
+      const confirmText = document.getElementById("confirmText");
+      const customPointsWrap = document.getElementById("customPointsWrap");
+      const customPointsInput = document.getElementById("customPointsInput");
+      const toast = document.getElementById("toast");
+      const finishScreen = document.getElementById("finishScreen");
+      const finishSummary = document.getElementById("finishSummary");
+      const leaderboardList = document.getElementById("leaderboardList");
+
+      let sharedState = null;
+      let pendingTaskId = null;
+      let resetConfirmationStep = 0;
+      let initializing = false;
+
+      function normalizePlayerName() {
+        return (playerNameInput.value || "Spieler").trim().slice(0, 22) || "Spieler";
+      }
+
+      function makePlayerKey(name) {
+        return (
+          name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "") || "spieler"
+        );
+      }
+
+      function playerKey() {
+        return makePlayerKey(normalizePlayerName());
+      }
+
+      function readStoredPlayerName() {
+        try {
+          const value = localStorage.getItem(STORAGE_KEY);
+          return value ? value.trim().slice(0, 22) || "Spieler" : "Spieler";
+        } catch {
+          return "Spieler";
+        }
+      }
+
+      function saveStoredPlayerName(name) {
+        try {
+          localStorage.setItem(STORAGE_KEY, name);
+        } catch {}
+      }
+
+      function shuffleArray(array) {
+        const result = [...array];
+
+        for (let i = result.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [result[i], result[j]] = [result[j], result[i]];
+        }
+
+        return result;
+      }
+
+      function formatTimer(ms) {
+        const s = Math.max(0, Math.ceil(ms / 1000));
+        return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(showToast.timeoutId);
+        showToast.timeoutId = setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[char],
+        );
+      }
+
+      function saveLeaderboardScore(value) {
+        const name = normalizePlayerName();
+        set(ref(db, `leaderboard/${playerKey()}`), {
+          name,
+          score: value,
+          updatedAt: Date.now(),
+        }).catch(() => showToast("Punktestand konnte nicht synchronisiert werden."));
+      }
+
+      function renderLeaderboard(data) {
+        const entries = Object.values(data || {})
+          .filter((item) => item && typeof item.score === "number")
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5);
+
+        leaderboardList.innerHTML = entries.length
+          ? entries
+              .map(
+                (entry, i) =>
+                  `<li class="leaderboard-item"><span class="leaderboard-name">${i + 1}. ${escapeHtml(entry.name || "Spieler")}</span><span class="leaderboard-score">${entry.score}</span></li>`,
+              )
+              .join("")
+          : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+      }
+
+      function makeNewState() {
+        const ids = shuffleArray(tasks.map((task) => task.id));
+        const activeTasks = {};
+
+        for (const id of ids.splice(0, 3)) {
+          activeTasks[id] = makeActiveTask(id);
+        }
+
+        return {
+          activeTasks,
+          remainingTaskIds: ids,
+          playerScores: {},
+          startedAt: Date.now(),
+          finished: false,
+        };
+      }
+
+      function makeActiveTask(id) {
+        const task = byId[id];
+        return {
+          deadline: Date.now() + task.timeMinutes * 60000,
+          points: task.points,
+          customPoints: task.customPoints,
+          completionCount: 0,
+          completedBy: {},
+        };
+      }
+
+      function normalizeState(state) {
+        if (!state || typeof state !== "object") return null;
+
+        return {
+          ...state,
+          activeTasks: state.activeTasks || {},
+          remainingTaskIds: Array.isArray(state.remainingTaskIds)
+            ? state.remainingTaskIds
+            : [],
+          playerScores: state.playerScores || {},
+          finished: Boolean(state.finished),
+          startedAt: state.startedAt || Date.now(),
+        };
+      }
+
+      function renderBoard() {
+        const state = normalizeState(sharedState);
+
+        if (!state) {
+          board.innerHTML = "";
+          scoreValue.textContent = "0";
+          return;
+        }
+
+        const key = playerKey();
+        const currentScore = Number(state.playerScores[key] || 0);
+        scoreValue.textContent = String(currentScore);
+
+        const active = Object.entries(state.activeTasks)
+          .filter(([id]) => byId[id])
+          .map(([id, task]) => ({ ...byId[id], ...task, id: Number(id) }));
+
+        board.innerHTML = active
+          .map((task) => {
+            const remaining = Math.max(0, task.deadline - Date.now());
+            const warning = remaining <= 60000 && remaining > 30000;
+            const danger = remaining <= 30000;
+            const count = Number(task.completionCount || 0);
+            const doneByMe = Boolean(task.completedBy && task.completedBy[key]);
+            const label =
+              count === 0
+                ? task.customPoints
+                  ? "Eigenpunkte"
+                  : `${task.points} P`
+                : `Weitere Spieler: ${task.points} P`;
+            const buttonText = doneByMe
+              ? "Von dir erledigt"
+              : count > 0
+                ? "Auch erledigt"
+                : "Aufgabe erledigt";
+
+            return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="${escapeHtml(task.title)}" /></div><div class="task-body"><h2 class="task-title">${escapeHtml(task.title)}</h2><div class="task-meta"><span class="badge">${label}</span><span class="timer ${warning ? "warning" : ""} ${danger ? "danger" : ""}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${doneByMe ? "disabled" : ""}>${buttonText}</button></div></article>`;
+          })
+          .join("");
+
+        if (state.finished) {
+          finishScreen.classList.add("show");
+          finishSummary.textContent = `${normalizePlayerName()}, du hast insgesamt ${currentScore} Punkte gesammelt.`;
+        } else {
+          finishScreen.classList.remove("show");
+        }
+      }
+
+      async function initializeGameIfNeeded() {
+        if (initializing) return;
+        initializing = true;
+
+        try {
+          await runTransaction(GAME_REF, (current) => current || makeNewState());
+        } catch {
+          showToast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen.");
+        } finally {
+          initializing = false;
+        }
+      }
+
+      function openConfirm(id) {
+        const task = normalizeState(sharedState)?.activeTasks?.[id];
+        if (!task || task.completedBy?.[playerKey()] || task.deadline <= Date.now()) {
+          return;
+        }
+
+        pendingTaskId = Number(id);
+        const repeated = Number(task.completionCount || 0) > 0;
+        confirmText.textContent = repeated
+          ? `Diese Aufgabe wurde bereits erledigt. Du erhältst ${task.points} Punkte.`
+          : `"${byId[id].title}" ist erledigt. ${task.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${task.points} Punkte.`}`;
+
+        if (task.customPoints && !repeated) {
+          customPointsWrap.classList.add("show");
+          customPointsInput.value = String(task.points);
+        } else {
+          customPointsWrap.classList.remove("show");
+        }
+
+        confirmModal.classList.add("show");
+      }
+
+      function closeConfirm() {
+        pendingTaskId = null;
+        confirmModal.classList.remove("show");
+      }
+
+      async function confirmTaskCompletion() {
+        if (pendingTaskId === null) return;
+
+        const id = pendingTaskId;
+        const key = playerKey();
+        const localTask = normalizeState(sharedState)?.activeTasks?.[id];
+        const isCustomFirst =
+          Number(localTask?.completionCount || 0) === 0 && localTask?.customPoints;
+        const enteredPoints = Number(customPointsInput.value);
+
+        if (isCustomFirst && (!Number.isFinite(enteredPoints) || enteredPoints < 0)) {
+          showToast("Bitte gültige Punkte eingeben.");
+          return;
+        }
+
+        closeConfirm();
+        let awarded = 0;
+
+        try {
+          const result = await runTransaction(
+            GAME_REF,
+            (current) => {
+              const state = normalizeState(current);
+              const task = state?.activeTasks?.[id];
+
+              if (!task || task.deadline <= Date.now() || task.completedBy?.[key]) {
+                return;
+              }
+
+              const first = Number(task.completionCount || 0) === 0;
+              awarded = first && task.customPoints ? enteredPoints : Number(task.points);
+              task.completionCount = Number(task.completionCount || 0) + 1;
+              task.completedBy = { ...(task.completedBy || {}), [key]: true };
+
+              if (first) {
+                task.points = Math.ceil(awarded / 2);
+                task.customPoints = false;
+                const now = Date.now();
+
+                if (task.deadline - now > SECOND_PLAYER_TIME_MS) {
+                  task.deadline = now + SECOND_PLAYER_TIME_MS;
+                }
+              }
+
+              state.playerScores[key] = Number(state.playerScores[key] || 0) + awarded;
+              return state;
+            },
+            { applyLocally: false },
+          );
+
+          if (!result.committed) {
+            showToast("Aufgabe ist abgelaufen oder wurde bereits von dir erledigt.");
+            return;
+          }
+
+          saveLeaderboardScore(
+            Number(result.snapshot.val()?.playerScores?.[key] || 0),
+          );
+          showToast(`Aufgabe erledigt! +${awarded} Punkte`);
+        } catch {
+          showToast("Erledigung konnte nicht gespeichert werden. Verbindung prüfen.");
+        }
+      }
+
+      async function advanceExpiredTasks() {
+        try {
+          await runTransaction(
+            GAME_REF,
+            (current) => {
+              const state = normalizeState(current);
+              if (!state || state.finished) return;
+
+              const now = Date.now();
+
+              for (const [id, task] of Object.entries(state.activeTasks)) {
+                if (Number(task.deadline) <= now) delete state.activeTasks[id];
+              }
+
+              while (
+                Object.keys(state.activeTasks).length < 3 &&
+                state.remainingTaskIds.length
+              ) {
+                const id = state.remainingTaskIds.shift();
+                state.activeTasks[id] = makeActiveTask(id);
+              }
+
+              if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) {
+                state.finished = true;
+              }
+
+              return state;
+            },
+            { applyLocally: false },
+          );
+        } catch {}
+      }
+
+      async function startNewSharedGame() {
+        if (
+          !window.confirm(
+            "Ein neues gemeinsames Spiel starten? Der aktuelle Spielstand wird für alle zurückgesetzt.",
+          )
+        ) {
+          return;
+        }
+
+        try {
+          await runTransaction(GAME_REF, () => makeNewState(), {
+            applyLocally: false,
+          });
+          showToast("Neues gemeinsames Spiel gestartet.");
+        } catch {
+          showToast("Neues Spiel konnte nicht gestartet werden.");
+        }
+      }
+
+      function requestResetConfirmation() {
+        if (resetConfirmationStep === 0) {
+          if (
+            !window.confirm(
+              "Wirklich das gemeinsame Spiel und alle Bestwerte für alle löschen?",
+            )
+          ) {
+            return;
+          }
+
+          resetConfirmationStep = 1;
+          showToast("Zur endgültigen Löschung erneut klicken.");
+          return;
+        }
+
+        resetConfirmationStep = 0;
+        if (
+          !window.confirm(
+            "Letzte Bestätigung: Spielstand und Bestenliste endgültig löschen?",
+          )
+        ) {
+          return;
+        }
+
+        Promise.all([
+          set(GAME_REF, makeNewState()),
+          set(ref(db, "leaderboard"), null),
+        ])
+          .then(() => showToast("Gemeinsames Spiel und Bestenliste zurückgesetzt."))
+          .catch(() => showToast("Zurücksetzen fehlgeschlagen."));
+      }
+
+      function confirmPlayerName() {
+        const name = normalizePlayerName();
+        saveStoredPlayerName(name);
+        document.title = `${name} | RegensPurge`;
+        renderBoard();
+        showToast(`Spielername gespeichert: ${name}`);
+      }
+
+      playerNameInput.addEventListener("input", () => {
+        const name = playerNameInput.value.trim().slice(0, 22);
+        document.title = name ? `${name} | RegensPurge` : "RegensPurge";
+        renderBoard();
+      });
+      playerNameConfirmBtn.addEventListener("click", confirmPlayerName);
+      board.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-task-id]");
+        if (button && !button.disabled) openConfirm(button.dataset.taskId);
+      });
+      document
+        .getElementById("cancelConfirmBtn")
+        .addEventListener("click", closeConfirm);
+      document
+        .getElementById("confirmBtn")
+        .addEventListener("click", confirmTaskCompletion);
+      document
+        .getElementById("newGameBtn")
+        .addEventListener("click", startNewSharedGame);
+      resetAllBtn.addEventListener("click", requestResetConfirmation);
+
+      playerNameInput.value = readStoredPlayerName();
+      document.title = `${playerNameInput.value || "Spieler"} | RegensPurge`;
+
+      onValue(GAME_REF, (snapshot) => {
+        sharedState = snapshot.val();
+        if (!sharedState) initializeGameIfNeeded();
+        renderBoard();
+      });
+      onValue(
+        ref(db, "leaderboard"),
+        (snapshot) => renderLeaderboard(snapshot.val() || {}),
+        () => renderLeaderboard({}),
+      );
+
+      initializeGameIfNeeded();
+      setInterval(() => {
+        advanceExpiredTasks();
+        renderBoard();
+      }, 1000);
+    </script>
+  </body>
 </html>
