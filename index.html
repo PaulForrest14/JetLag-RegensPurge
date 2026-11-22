@@ -102,7 +102,7 @@
       function makeNewState() {
         const ids = tasks.map((task) => task.id).sort(() => Math.random() - 0.5);
         const activeTasks = {};
-        ids.splice(0, 3).forEach((id) => activeTasks[id] = makeActiveTask(id));
+        ids.splice(0, 5).forEach((id) => activeTasks[id] = makeActiveTask(id));
         return { catalogVersion: CATALOG_VERSION, activeTasks, remainingTaskIds: ids, playerScores: {}, startedAt: Date.now(), finished: false };
       }
       function normalizeState(state) {
@@ -175,7 +175,7 @@
             if (!state || state.catalogVersion !== CATALOG_VERSION || state.finished) return;
             const now = Date.now();
             for (const [id, task] of Object.entries(state.activeTasks)) if (Number(task.deadline) <= now) delete state.activeTasks[id];
-            while (Object.keys(state.activeTasks).length < 3 && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
+            while (Object.keys(state.activeTasks).length < 5 && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
             if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) state.finished = true;
             return state;
           }, { applyLocally: false });
