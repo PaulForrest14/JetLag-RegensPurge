@@ -46,18 +46,48 @@
       const GAME_REF = ref(db, "gameState");
       const CATALOG_VERSION = 37;
       const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
-      const pointsById = [0,20,25,30,35,40,25,30,20,45,15,50];
-      const timesById = [0,15,10,12,18,8,20,14,16,22,9,25];
-      const tasks = Array.from({ length: 37 }, (_, index) => {
-        const id = index + 1;
-        return {
-          id,
-          image: id === 1 ? "card-small(1).png" : `card-small (${id}).png`,
-          points: pointsById[id] ?? 20 + ((id * 5) % 31),
-          customPoints: id === 10 || id === 11,
-          timeMinutes: timesById[id] ?? 8 + ((id * 7) % 19),
-        };
-      });
+
+      // Hier kannst du jede Aufgabe einzeln anpassen: points = Punkte, timeMinutes = Zeit in Minuten.
+      // customPoints: true erlaubt beim Erledigen eine eigene Punktezahl einzugeben.
+      const tasks = [
+        { id: 1, image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
+        { id: 2, image: "card-small (2).png", points: 25, customPoints: false, timeMinutes: 10 },
+        { id: 3, image: "card-small (3).png", points: 30, customPoints: false, timeMinutes: 12 },
+        { id: 4, image: "card-small (4).png", points: 35, customPoints: false, timeMinutes: 18 },
+        { id: 5, image: "card-small (5).png", points: 40, customPoints: false, timeMinutes: 8 },
+        { id: 6, image: "card-small (6).png", points: 25, customPoints: false, timeMinutes: 20 },
+        { id: 7, image: "card-small (7).png", points: 30, customPoints: false, timeMinutes: 14 },
+        { id: 8, image: "card-small (8).png", points: 20, customPoints: false, timeMinutes: 16 },
+        { id: 9, image: "card-small (9).png", points: 45, customPoints: false, timeMinutes: 22 },
+        { id: 10, image: "card-small (10).png", points: 15, customPoints: true, timeMinutes: 9 },
+        { id: 11, image: "card-small (11).png", points: 50, customPoints: true, timeMinutes: 25 },
+        { id: 12, image: "card-small (12).png", points: 49, customPoints: false, timeMinutes: 16 },
+        { id: 13, image: "card-small (13).png", points: 23, customPoints: false, timeMinutes: 23 },
+        { id: 14, image: "card-small (14).png", points: 28, customPoints: false, timeMinutes: 11 },
+        { id: 15, image: "card-small (15).png", points: 33, customPoints: false, timeMinutes: 18 },
+        { id: 16, image: "card-small (16).png", points: 38, customPoints: false, timeMinutes: 25 },
+        { id: 17, image: "card-small (17).png", points: 43, customPoints: false, timeMinutes: 13 },
+        { id: 18, image: "card-small (18).png", points: 48, customPoints: false, timeMinutes: 20 },
+        { id: 19, image: "card-small (19).png", points: 22, customPoints: false, timeMinutes: 8 },
+        { id: 20, image: "card-small (20).png", points: 27, customPoints: false, timeMinutes: 15 },
+        { id: 21, image: "card-small (21).png", points: 32, customPoints: false, timeMinutes: 22 },
+        { id: 22, image: "card-small (22).png", points: 37, customPoints: false, timeMinutes: 10 },
+        { id: 23, image: "card-small (23).png", points: 42, customPoints: false, timeMinutes: 17 },
+        { id: 24, image: "card-small (24).png", points: 47, customPoints: false, timeMinutes: 24 },
+        { id: 25, image: "card-small (25).png", points: 21, customPoints: false, timeMinutes: 12 },
+        { id: 26, image: "card-small (26).png", points: 26, customPoints: false, timeMinutes: 19 },
+        { id: 27, image: "card-small (27).png", points: 31, customPoints: false, timeMinutes: 26 },
+        { id: 28, image: "card-small (28).png", points: 36, customPoints: false, timeMinutes: 14 },
+        { id: 29, image: "card-small (29).png", points: 41, customPoints: false, timeMinutes: 21 },
+        { id: 30, image: "card-small (30).png", points: 46, customPoints: false, timeMinutes: 9 },
+        { id: 31, image: "card-small (31).png", points: 20, customPoints: false, timeMinutes: 16 },
+        { id: 32, image: "card-small (32).png", points: 25, customPoints: false, timeMinutes: 23 },
+        { id: 33, image: "card-small (33).png", points: 30, customPoints: false, timeMinutes: 11 },
+        { id: 34, image: "card-small (34).png", points: 35, customPoints: false, timeMinutes: 18 },
+        { id: 35, image: "card-small (35).png", points: 40, customPoints: false, timeMinutes: 25 },
+        { id: 36, image: "card-small (36).png", points: 45, customPoints: false, timeMinutes: 13 },
+        { id: 37, image: "card-small (37).png", points: 50, customPoints: false, timeMinutes: 20 },
+      ];
       const byId = Object.fromEntries(tasks.map((task) => [task.id, task]));
       const $ = (id) => document.getElementById(id);
       const board = $("board"), scoreValue = $("scoreValue"), nameInput = $("playerNameInput");
@@ -101,9 +131,8 @@
         else $("finishScreen").classList.remove("show");
       }
       async function initializeGame() {
-        try {
-          await runTransaction(GAME_REF, (current) => current?.catalogVersion === CATALOG_VERSION ? current : makeNewState());
-        } catch { toast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
+        try { await runTransaction(GAME_REF, (current) => current?.catalogVersion === CATALOG_VERSION ? current : makeNewState()); }
+        catch { toast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
       }
       function openConfirm(id) {
         const task = normalizeState(sharedState)?.activeTasks?.[id];
@@ -146,10 +175,7 @@
             if (!state || state.catalogVersion !== CATALOG_VERSION || state.finished) return;
             const now = Date.now();
             for (const [id, task] of Object.entries(state.activeTasks)) if (Number(task.deadline) <= now) delete state.activeTasks[id];
-            while (Object.keys(state.activeTasks).length < 3 && state.remainingTaskIds.length) {
-              const id = state.remainingTaskIds.shift();
-              state.activeTasks[id] = makeActiveTask(id);
-            }
+            while (Object.keys(state.activeTasks).length < 3 && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
             if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) state.finished = true;
             return state;
           }, { applyLocally: false });
