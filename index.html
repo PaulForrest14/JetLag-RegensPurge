@@ -87,6 +87,7 @@
         { id: 35, image: "card-small (35).png", points: 5, customPoints: false, timeMinutes: 25 },
         { id: 36, image: "card-small (36).png", points: 4, customPoints: false, timeMinutes: 23 },
         { id: 37, image: "card-small (37).png", points: 4, customPoints: true, timeMinutes: 37 },
+        { id: 38, image: "card-small (38).png", points: 3, customPoints: true, timeMinutes: 26 },
       ];
       const byId = Object.fromEntries(tasks.map((task) => [task.id, task]));
       const $ = (id) => document.getElementById(id);
@@ -122,7 +123,7 @@
         board.innerHTML = active.map((task) => {
           const remaining = Math.max(0, task.deadline - Date.now()), count = Number(task.completionCount || 0);
           const done = Boolean(task.completedBy?.[key]);
-          const label = count === 0 ? (task.customPoints ? "Eigenpunkte" : `${task.points} P`) : `Weitere Spieler: ${task.points} P`;
+          const label = count === 0 ? (task.customPoints ? "Eigenepunkte" : `${task.points} P`) : `Weitere Spieler: ${task.points} P`;
           const button = done ? "Von dir erledigt" : count > 0 ? "Auch erledigt" : "Aufgabe erledigt";
           const timerClass = remaining <= 30000 ? "danger" : remaining <= 60000 ? "warning" : "";
           return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="Aufgabe ${task.id}" /></div><div class="task-body"><div class="task-meta"><span class="badge">${label}</span><span class="timer ${timerClass}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${done ? "disabled" : ""}>${button}</button></div></article>`;
