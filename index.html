@@ -44,11 +44,12 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
       const GAME_REF = ref(db, "gameState");
-      const CATALOG_VERSION = 37;
+      const CATALOG_VERSION = 41;
+      const ACTIVE_TASK_LIMIT = 3;
       const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
 
       // Hier kannst du jede Aufgabe einzeln anpassen: points = Punkte, timeMinutes = Zeit in Minuten.
-      // customPoints: true erlaubt beim Erledigen eine eigene Punktezahl einzugeben.
+      // customPoints: true erlaubt bei jeder Erledigung eine eigene Punktezahl einzugeben.
       const tasks = [
         { id: 1, image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
         { id: 2, image: "card-small (2).png", points: 2, customPoints: true, timeMinutes: 20 },
@@ -103,8 +104,17 @@
       function makeNewState() {
         const ids = tasks.map((task) => task.id).sort(() => Math.random() - 0.5);
         const activeTasks = {};
-        ids.splice(0, 5).forEach((id) => activeTasks[id] = makeActiveTask(id));
+        ids.splice(0, ACTIVE_TASK_LIMIT).forEach((id) => activeTasks[id] = makeActiveTask(id));
         return { catalogVersion: CATALOG_VERSION, activeTasks, remainingTaskIds: ids, playerScores: {}, startedAt: Date.now(), finished: false };
+      }
+      function migrateState(current) {
+        const state = { ...current, activeTasks: { ...(current.activeTasks || {}) }, remainingTaskIds: Array.isArray(current.remainingTaskIds) ? [...current.remainingTaskIds] : [], playerScores: current.playerScores || {} };
+        const ids = Object.keys(state.activeTasks);
+        const overflow = ids.slice(ACTIVE_TASK_LIMIT);
+        for (const id of overflow) delete state.activeTasks[id];
+        state.remainingTaskIds = [...overflow, ...state.remainingTaskIds.filter((id) => !overflow.includes(String(id)))];
+        state.catalogVersion = CATALOG_VERSION;
+        return state;
       }
       function normalizeState(state) {
         if (!state || typeof state !== "object") return null;
@@ -112,7 +122,7 @@
       }
       function renderLeaderboard(data) {
         const entries = Object.values(data || {}).filter((entry) => entry && typeof entry.score === "number").sort((a,b) => b.score-a.score).slice(0,5);
-        $("leaderboardList").innerHTML = entries.length ? entries.map((entry,i) => `<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${String(entry.name || "Spieler").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}</span><span class="leaderboard-score">${entry.score}</span></li>`).join("") : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+        $("leaderboardList").innerHTML = entries.length ? entries.map((entry,i) => `<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${String(entry.name || "Spieler").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c]))}</span><span class="leaderboard-score">${entry.score}</span></li>`).join("") : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
       }
       function renderBoard() {
         const state = normalizeState(sharedState);
@@ -120,10 +130,11 @@
         const key = playerKey(), score = Number(state.playerScores[key] || 0);
         scoreValue.textContent = String(score);
         const active = Object.entries(state.activeTasks).filter(([id]) => byId[id]).map(([id,task]) => ({...byId[id],...task,id:Number(id)}));
-        board.innerHTML = active.map((task) => {
+        active.sort((a,b) => Number(Boolean(a.completedBy?.[key])) - Number(Boolean(b.completedBy?.[key])));
+        board.innerHTML = active.slice(0, ACTIVE_TASK_LIMIT).map((task) => {
           const remaining = Math.max(0, task.deadline - Date.now()), count = Number(task.completionCount || 0);
           const done = Boolean(task.completedBy?.[key]);
-          const label = count === 0 ? (task.customPoints ? "Eigenepunkte" : `${task.points} P`) : `Weitere Spieler: ${task.points} P`;
+          const label = task.customPoints ? "Eigenepunkte" : count === 0 ? `${task.points} P` : `Weitere Spieler: ${task.points} P`;
           const button = done ? "Von dir erledigt" : count > 0 ? "Auch erledigt" : "Aufgabe erledigt";
           const timerClass = remaining <= 30000 ? "danger" : remaining <= 60000 ? "warning" : "";
           return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="Aufgabe ${task.id}" /></div><div class="task-body"><div class="task-meta"><span class="badge">${label}</span><span class="timer ${timerClass}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${done ? "disabled" : ""}>${button}</button></div></article>`;
@@ -132,40 +143,53 @@
         else $("finishScreen").classList.remove("show");
       }
       async function initializeGame() {
-        try { await runTransaction(GAME_REF, (current) => current?.catalogVersion === CATALOG_VERSION ? current : makeNewState()); }
+        try { await runTransaction(GAME_REF, (current) => {
+          if (!current) return makeNewState();
+          return current.catalogVersion === CATALOG_VERSION ? current : migrateState(current);
+        }); }
         catch { toast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
       }
       function openConfirm(id) {
         const task = normalizeState(sharedState)?.activeTasks?.[id];
         if (!task || task.completedBy?.[playerKey()] || task.deadline <= Date.now()) return;
         pendingTaskId = Number(id);
+        const custom = Boolean(task.customPoints);
         const repeated = Number(task.completionCount || 0) > 0;
-        $("confirmText").textContent = repeated ? `Du erhältst ${task.points} Punkte.` : task.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${task.points} Punkte.`;
-        customWrap.classList.toggle("show", Boolean(task.customPoints && !repeated));
+        $("confirmText").textContent = custom ? "Trage die Punkte selbst ein." : repeated ? `Du erhältst ${task.points} Punkte.` : `Du bekommst ${task.points} Punkte.`;
+        customWrap.classList.toggle("show", custom);
         customInput.value = String(task.points);
         modal.classList.add("show");
       }
       function closeConfirm() { pendingTaskId = null; modal.classList.remove("show"); }
       async function completeTask() {
         if (pendingTaskId === null) return;
-        const id = pendingTaskId, key = playerKey(), localTask = normalizeState(sharedState)?.activeTasks?.[id];
+        const id = pendingTaskId, key = playerKey(), team = playerName();
+        const localTask = normalizeState(sharedState)?.activeTasks?.[id];
+        const custom = Boolean(localTask?.customPoints);
         const entered = Number(customInput.value);
-        if (localTask?.customPoints && Number(localTask.completionCount || 0) === 0 && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
+        if (custom && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
         closeConfirm(); let awarded = 0;
         try {
           const result = await runTransaction(GAME_REF, (current) => {
             const state = normalizeState(current), task = state?.activeTasks?.[id];
             if (!state || !task || task.deadline <= Date.now() || task.completedBy?.[key]) return;
             const first = Number(task.completionCount || 0) === 0;
-            awarded = first && task.customPoints ? entered : Number(task.points);
+            awarded = task.customPoints ? entered : Number(task.points);
             task.completionCount = Number(task.completionCount || 0) + 1;
             task.completedBy = { ...(task.completedBy || {}), [key]: true };
-            if (first) { task.points = Math.ceil(awarded / 2); task.customPoints = false; if (task.deadline - Date.now() > SECOND_PLAYER_TIME_MS) task.deadline = Date.now() + SECOND_PLAYER_TIME_MS; }
+            if (first) {
+              if (!task.customPoints) task.points = Math.ceil(awarded / 2);
+              if (task.deadline - Date.now() > SECOND_PLAYER_TIME_MS) task.deadline = Date.now() + SECOND_PLAYER_TIME_MS;
+              if (state.remainingTaskIds.length) {
+                const nextId = state.remainingTaskIds.shift();
+                state.activeTasks[nextId] = makeActiveTask(nextId);
+              }
+            }
             state.playerScores[key] = Number(state.playerScores[key] || 0) + awarded;
             return state;
           }, { applyLocally: false });
           if (!result.committed) { toast("Aufgabe ist abgelaufen oder bereits erledigt."); return; }
-          set(ref(db, `leaderboard/${key}`), { name: playerName(), score: Number(result.snapshot.val()?.playerScores?.[key] || 0), updatedAt: Date.now() });
+          set(ref(db, `leaderboard/${key}`), { name: team, score: Number(result.snapshot.val()?.playerScores?.[key] || 0), updatedAt: Date.now() });
           toast(`Aufgabe erledigt! +${awarded} Punkte`);
         } catch { toast("Erledigung konnte nicht gespeichert werden."); }
       }
@@ -176,7 +200,7 @@
             if (!state || state.catalogVersion !== CATALOG_VERSION || state.finished) return;
             const now = Date.now();
             for (const [id, task] of Object.entries(state.activeTasks)) if (Number(task.deadline) <= now) delete state.activeTasks[id];
-            while (Object.keys(state.activeTasks).length < 5 && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
+            while (Object.keys(state.activeTasks).length < ACTIVE_TASK_LIMIT && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
             if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) state.finished = true;
             return state;
           }, { applyLocally: false });
@@ -194,7 +218,17 @@
       $("cancelConfirmBtn").addEventListener("click", closeConfirm);
       $("confirmBtn").addEventListener("click", completeTask);
       $("newGameBtn").addEventListener("click", newGame);
-      $("resetAllBtn").addEventListener("click", async () => { if (!window.confirm("Spielstand und Bestenliste für alle löschen?")) return; try { await Promise.all([runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }), set(ref(db,"leaderboard"), null)]); toast("Spielstand und Bestenliste zurückgesetzt."); } catch { toast("Zurücksetzen fehlgeschlagen."); } });
+      $("resetAllBtn").addEventListener("click", async () => {
+        if (!window.confirm("Spielstand und Bestenliste wirklich löschen?")) return;
+        if (!window.confirm("Letzte Bestätigung: Alle Daten unwiderruflich löschen?")) return;
+        try {
+          await Promise.all([
+            runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }),
+            set(ref(db, "leaderboard"), null)
+          ]);
+          toast("Spielstand und Bestenliste zurückgesetzt.");
+        } catch { toast("Zurücksetzen fehlgeschlagen."); }
+      });
       onValue(GAME_REF, (snapshot) => { sharedState = snapshot.val(); if (!sharedState || sharedState.catalogVersion !== CATALOG_VERSION) initializeGame(); renderBoard(); });
       onValue(ref(db,"leaderboard"), (snapshot) => renderLeaderboard(snapshot.val() || {}), () => renderLeaderboard({}));
       initializeGame();
