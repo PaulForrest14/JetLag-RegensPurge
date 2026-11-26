@@ -44,7 +44,7 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
       const GAME_REF = ref(db, "gameState");
-      const CATALOG_VERSION = 37;
+      const CATALOG_VERSION = 39;
       const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
 
       // Hier kannst du jede Aufgabe einzeln anpassen: points = Punkte, timeMinutes = Zeit in Minuten.
@@ -141,8 +141,7 @@
         if (!task || task.completedBy?.[playerKey()] || task.deadline <= Date.now()) return;
         pendingTaskId = Number(id);
         const custom = Boolean(byId[id]?.customPoints);
-        const repeated = Number(task.completionCount || 0) > 0;
-        $("confirmText").textContent = custom ? "Trage die Punkte selbst ein." : repeated ? `Du erhältst ${task.points} Punkte.` : `Du bekommst ${task.points} Punkte.`;
+        $("confirmText").textContent = custom ? "Trage die Punkte selbst ein." : Number(task.completionCount || 0) > 0 ? `Du erhältst ${task.points} Punkte.` : `Du bekommst ${task.points} Punkte.`;
         customWrap.classList.toggle("show", custom);
         customInput.value = String(task.points);
         modal.classList.add("show");
@@ -150,7 +149,7 @@
       function closeConfirm() { pendingTaskId = null; modal.classList.remove("show"); }
       async function completeTask() {
         if (pendingTaskId === null) return;
-        const id = pendingTaskId, key = playerKey(), localTask = normalizeState(sharedState)?.activeTasks?.[id];
+        const id = pendingTaskId, key = playerKey();
         const custom = Boolean(byId[id]?.customPoints);
         const entered = Number(customInput.value);
         if (custom && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
@@ -205,7 +204,19 @@
       $("cancelConfirmBtn").addEventListener("click", closeConfirm);
       $("confirmBtn").addEventListener("click", completeTask);
       $("newGameBtn").addEventListener("click", newGame);
-      $("resetAllBtn").addEventListener("click", async () => { if (!window.confirm("Spielstand und Bestenliste für alle löschen?")) return; try { await Promise.all([runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }), set(ref(db,"leaderboard"), null)]); toast("Spielstand und Bestenliste zurückgesetzt."); } catch { toast("Zurücksetzen fehlgeschlagen."); } });
+      $("resetAllBtn").addEventListener("click", async () => {
+        if (!window.confirm("Spielstand und Bestenliste wirklich löschen?")) return;
+        if (!window.confirm("Letzte Bestätigung: Alle Daten unwiderruflich löschen?")) return;
+        try {
+          await Promise.all([
+            runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }),
+            set(ref(db, "leaderboard"), null)
+          ]);
+          toast("Spielstand und Bestenliste zurückgesetzt.");
+        } catch {
+          toast("Zurücksetzen fehlgeschlagen.");
+        }
+      });
       onValue(GAME_REF, (snapshot) => { sharedState = snapshot.val(); if (!sharedState || sharedState.catalogVersion !== CATALOG_VERSION) initializeGame(); renderBoard(); });
       onValue(ref(db,"leaderboard"), (snapshot) => renderLeaderboard(snapshot.val() || {}), () => renderLeaderboard({}));
       initializeGame();
