@@ -48,7 +48,7 @@
       const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
 
       // Hier kannst du jede Aufgabe einzeln anpassen: points = Punkte, timeMinutes = Zeit in Minuten.
-      // customPoints: true erlaubt beim Erledigen eine eigene Punktezahl einzugeben.
+      // customPoints: true erlaubt bei jeder Erledigung eine eigene Punktezahl einzugeben.
       const tasks = [
         { id: 1, image: "card-small(1).png", points: 20, customPoints: false, timeMinutes: 15 },
         { id: 2, image: "card-small (2).png", points: 2, customPoints: true, timeMinutes: 20 },
@@ -119,11 +119,11 @@
         if (!state) { board.innerHTML = ""; scoreValue.textContent = "0"; return; }
         const key = playerKey(), score = Number(state.playerScores[key] || 0);
         scoreValue.textContent = String(score);
-        const active = Object.entries(state.activeTasks).filter(([id]) => byId[id]).map(([id,task]) => ({...byId[id],...task,id:Number(id)}));
+        const active = Object.entries(state.activeTasks).filter(([id]) => byId[id]).map(([id,task]) => ({...byId[id],...task,customPoints:byId[id].customPoints,id:Number(id)}));
         board.innerHTML = active.map((task) => {
           const remaining = Math.max(0, task.deadline - Date.now()), count = Number(task.completionCount || 0);
           const done = Boolean(task.completedBy?.[key]);
-          const label = count === 0 ? (task.customPoints ? "Eigenepunkte" : `${task.points} P`) : `Weitere Spieler: ${task.points} P`;
+          const label = task.customPoints ? "Eigenepunkte" : count === 0 ? `${task.points} P` : `Weitere Spieler: ${task.points} P`;
           const button = done ? "Von dir erledigt" : count > 0 ? "Auch erledigt" : "Aufgabe erledigt";
           const timerClass = remaining <= 30000 ? "danger" : remaining <= 60000 ? "warning" : "";
           return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="Aufgabe ${task.id}" /></div><div class="task-body"><div class="task-meta"><span class="badge">${label}</span><span class="timer ${timerClass}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${done ? "disabled" : ""}>${button}</button></div></article>`;
@@ -139,9 +139,10 @@
         const task = normalizeState(sharedState)?.activeTasks?.[id];
         if (!task || task.completedBy?.[playerKey()] || task.deadline <= Date.now()) return;
         pendingTaskId = Number(id);
+        const custom = Boolean(byId[id]?.customPoints);
         const repeated = Number(task.completionCount || 0) > 0;
-        $("confirmText").textContent = repeated ? `Du erhältst ${task.points} Punkte.` : task.customPoints ? "Trage die Punkte selbst ein." : `Du bekommst ${task.points} Punkte.`;
-        customWrap.classList.toggle("show", Boolean(task.customPoints && !repeated));
+        $("confirmText").textContent = custom ? "Trage die Punkte selbst ein." : repeated ? `Du erhältst ${task.points} Punkte.` : `Du bekommst ${task.points} Punkte.`;
+        customWrap.classList.toggle("show", custom);
         customInput.value = String(task.points);
         modal.classList.add("show");
       }
@@ -149,18 +150,27 @@
       async function completeTask() {
         if (pendingTaskId === null) return;
         const id = pendingTaskId, key = playerKey(), localTask = normalizeState(sharedState)?.activeTasks?.[id];
+        const custom = Boolean(byId[id]?.customPoints);
         const entered = Number(customInput.value);
-        if (localTask?.customPoints && Number(localTask.completionCount || 0) === 0 && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
+        if (custom && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
         closeConfirm(); let awarded = 0;
         try {
           const result = await runTransaction(GAME_REF, (current) => {
             const state = normalizeState(current), task = state?.activeTasks?.[id];
             if (!state || !task || task.deadline <= Date.now() || task.completedBy?.[key]) return;
             const first = Number(task.completionCount || 0) === 0;
-            awarded = first && task.customPoints ? entered : Number(task.points);
+            awarded = custom ? entered : Number(task.points);
             task.completionCount = Number(task.completionCount || 0) + 1;
             task.completedBy = { ...(task.completedBy || {}), [key]: true };
-            if (first) { task.points = Math.ceil(awarded / 2); task.customPoints = false; if (task.deadline - Date.now() > SECOND_PLAYER_TIME_MS) task.deadline = Date.now() + SECOND_PLAYER_TIME_MS; }
+            if (first) {
+              if (!custom) task.points = Math.ceil(awarded / 2);
+              task.customPoints = custom;
+              if (task.deadline - Date.now() > SECOND_PLAYER_TIME_MS) task.deadline = Date.now() + SECOND_PLAYER_TIME_MS;
+              if (state.remainingTaskIds.length) {
+                const nextId = state.remainingTaskIds.shift();
+                state.activeTasks[nextId] = makeActiveTask(nextId);
+              }
+            }
             state.playerScores[key] = Number(state.playerScores[key] || 0) + awarded;
             return state;
           }, { applyLocally: false });
