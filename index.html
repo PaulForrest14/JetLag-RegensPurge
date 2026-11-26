@@ -8,7 +8,7 @@
       :root{--bg-dark:#1b1a17;--primary:#d7b36a;--primary-strong:#b98245;--text:#fffaf2;--muted:#f4e4c8;--shadow:0 18px 34px rgba(24,18,12,.28);--gold-soft:#f5d58f}
       *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg-dark)}
       body{min-height:100vh;background-image:linear-gradient(135deg,rgba(24,18,15,.7),rgba(39,30,24,.55)),url("Wallpaper/Regensburg_Alte_Bruecke_mit_Altstadt.jpg");background-size:cover;background-position:center;background-attachment:fixed}
-      button,input{font:inherit}.app{width:min(1200px,calc(100% - 24px));margin:auto;padding:20px 0 40px}.topbar,.leaderboard-panel{background:rgba(57,44,33,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,243,222,.12);border-radius:24px;padding:18px 22px;box-shadow:var(--shadow)}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}.title{margin:0;color:var(--gold-soft);font-size:clamp(2rem,3vw,3rem);letter-spacing:.08em;text-transform:uppercase}.subtitle{margin:6px 0 0;color:var(--muted);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}.player-panel,.player-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.player-input-wrap{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:.75rem;text-transform:uppercase}.player-input-wrap input{min-width:190px;border:1px solid rgba(255,248,236,.18);background:rgba(40,31,26,.8);color:var(--text);border-radius:12px;padding:11px 12px}.player-confirm-btn,.reset-btn,.secondary-btn,.primary-btn,.restart-btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;font-size:.76rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}.player-confirm-btn,.secondary-btn{background:rgba(255,255,255,.1);color:var(--text)}.reset-btn{background:linear-gradient(135deg,#b8675d,#79453e);color:var(--text)}.score-box{min-width:120px;padding:9px 14px;text-align:center;border:1px solid rgba(214,152,113,.35);border-radius:16px;background:rgba(214,152,113,.18)}.score-label{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase}.score-value{font-size:2rem;font-weight:900}.leaderboard-panel{margin-top:18px}.leaderboard-title{margin:0 0 12px;color:var(--muted);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}.leaderboard-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;padding:0;margin:0}.leaderboard-item{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid rgba(255,243,222,.08);border-radius:14px;background:rgba(255,255,255,.04)}.leaderboard-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{color:var(--gold-soft);font-weight:900}.board{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:22px;margin-top:24px}.task-card{display:flex;flex-direction:column;min-height:440px;overflow:hidden;color:#2e1f16;border:1px solid rgba(89,66,49,.2);border-radius:24px;background:linear-gradient(180deg,rgba(245,233,214,.96),rgba(234,222,202,.94));box-shadow:var(--shadow)}.card-image-wrap{width:100%;aspect-ratio:1/1.5;overflow:hidden;background:rgba(255,255,255,.18);border-bottom:1px solid rgba(79,58,43,.18)}.card-image-wrap img{display:block;width:100%;height:100%;object-fit:cover}.task-body{display:flex;flex:1;flex-direction:column;padding:16px}.task-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.badge{display:inline-flex;padding:7px 12px;border:1px solid rgba(162,128,82,.28);border-radius:999px;background:rgba(162,128,82,.14);color:#4d3528;font-size:.8rem;font-weight:700}.timer{color:#5e4738;font-weight:800;text-align:right}.timer.warning{color:#a46a3d}.timer.danger{color:#b54b42}.task-button,.primary-btn,.restart-btn{border:0;border-radius:14px;padding:14px;background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:var(--text);font-weight:900;cursor:pointer;text-transform:uppercase}.task-button{width:100%;margin-top:auto}.task-button:disabled{background:#8c8173;cursor:not-allowed}.modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(26,20,17,.7)}.modal.show{display:flex}.modal-card{width:min(420px,calc(100% - 28px));padding:22px 20px 18px;border:1px solid rgba(255,243,222,.12);border-radius:22px;background:#3d2e24;box-shadow:var(--shadow)}.modal-card h2{margin:0 0 10px;color:#fff4df}.modal-card p{color:var(--muted);line-height:1.5}.custom-points{display:none;margin-bottom:16px}.custom-points.show{display:block}.custom-points label{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:.8rem}.custom-points input{width:100%;padding:12px;border:1px solid rgba(255,248,236,.18);border-radius:12px;background:#281f1a;color:var(--text)}.modal-actions{display:flex;justify-content:flex-end;gap:10px}.finish-screen{display:none;margin-top:24px;padding:30px;text-align:center;background:rgba(56,43,35,.85);border-radius:24px}.finish-screen.show{display:block}.finish-screen h2{color:#fff5dd}@media(max-width:900px){.board{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.player-panel{width:100%;justify-content:space-between}}@media(max-width:560px){.app{width:calc(100% - 16px);padding-top:12px}.topbar{padding:16px}.player-panel{display:grid;grid-template-columns:1fr}.player-actions{width:100%}.player-input-wrap input,.player-confirm-btn,.reset-btn{width:100%;min-width:0}}
+      button,input{font:inherit}.app{width:min(1200px,calc(100% - 24px));margin:auto;padding:20px 0 40px}.topbar,.leaderboard-panel,.gamelog-panel{background:rgba(57,44,33,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,243,222,.12);border-radius:24px;padding:18px 22px;box-shadow:var(--shadow)}.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}.title{margin:0;color:var(--gold-soft);font-size:clamp(2rem,3vw,3rem);letter-spacing:.08em;text-transform:uppercase}.subtitle{margin:6px 0 0;color:var(--muted);font-size:.82rem;letter-spacing:.08em;text-transform:uppercase}.player-panel,.player-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.player-input-wrap{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:.75rem;text-transform:uppercase}.player-input-wrap input{min-width:190px;border:1px solid rgba(255,248,236,.18);background:rgba(40,31,26,.8);color:var(--text);border-radius:12px;padding:11px 12px}.player-confirm-btn,.reset-btn,.secondary-btn,.primary-btn,.restart-btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;font-size:.76rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em}.player-confirm-btn,.secondary-btn{background:rgba(255,255,255,.1);color:var(--text)}.reset-btn{background:linear-gradient(135deg,#b8675d,#79453e);color:var(--text)}.score-box{min-width:120px;padding:9px 14px;text-align:center;border:1px solid rgba(214,152,113,.35);border-radius:16px;background:rgba(214,152,113,.18)}.score-label{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase}.score-value{font-size:2rem;font-weight:900}.leaderboard-panel,.gamelog-panel{margin-top:18px}.leaderboard-title{margin:0 0 12px;color:var(--muted);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}.leaderboard-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;padding:0;margin:0}.leaderboard-item,.gamelog-item{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid rgba(255,243,222,.08);border-radius:14px;background:rgba(255,255,255,.04)}.leaderboard-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderboard-score{color:var(--gold-soft);font-weight:900}.gamelog-list{list-style:none;display:grid;gap:8px;padding:0;margin:0}.gamelog-item{align-items:center;color:var(--muted);font-size:.9rem}.gamelog-points{color:var(--gold-soft);font-weight:900;white-space:nowrap}.board{display:grid;grid-template-columns:repeat(3,minmax(240px,1fr));gap:22px;margin-top:24px}.task-card{display:flex;flex-direction:column;min-height:440px;overflow:hidden;color:#2e1f16;border:1px solid rgba(89,66,49,.2);border-radius:24px;background:linear-gradient(180deg,rgba(245,233,214,.96),rgba(234,222,202,.94));box-shadow:var(--shadow)}.card-image-wrap{width:100%;aspect-ratio:1/1.5;overflow:hidden;background:rgba(255,255,255,.18);border-bottom:1px solid rgba(79,58,43,.18)}.card-image-wrap img{display:block;width:100%;height:100%;object-fit:cover}.task-body{display:flex;flex:1;flex-direction:column;padding:16px}.task-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.badge{display:inline-flex;padding:7px 12px;border:1px solid rgba(162,128,82,.28);border-radius:999px;background:rgba(162,128,82,.14);color:#4d3528;font-size:.8rem;font-weight:700}.timer{color:#5e4738;font-weight:800;text-align:right}.timer.warning{color:#a46a3d}.timer.danger{color:#b54b42}.task-button,.primary-btn,.restart-btn{border:0;border-radius:14px;padding:14px;background:linear-gradient(135deg,var(--primary),var(--primary-strong));color:var(--text);font-weight:900;cursor:pointer;text-transform:uppercase}.task-button{width:100%;margin-top:auto}.task-button:disabled{background:#8c8173;cursor:not-allowed}.modal{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:rgba(26,20,17,.7)}.modal.show{display:flex}.modal-card{width:min(420px,calc(100% - 28px));padding:22px 20px 18px;border:1px solid rgba(255,243,222,.12);border-radius:22px;background:#3d2e24;box-shadow:var(--shadow)}.modal-card h2{margin:0 0 10px;color:#fff4df}.modal-card p{color:var(--muted);line-height:1.5}.custom-points{display:none;margin-bottom:16px}.custom-points.show{display:block}.custom-points label{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:.8rem}.custom-points input{width:100%;padding:12px;border:1px solid rgba(255,248,236,.18);border-radius:12px;background:#281f1a;color:var(--text)}.modal-actions{display:flex;justify-content:flex-end;gap:10px}.finish-screen{display:none;margin-top:24px;padding:30px;text-align:center;background:rgba(56,43,35,.85);border-radius:24px}.finish-screen.show{display:block}.finish-screen h2{color:#fff5dd}@media(max-width:900px){.board{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.player-panel{width:100%;justify-content:space-between}}@media(max-width:560px){.app{width:calc(100% - 16px);padding-top:12px}.topbar{padding:16px}.player-panel{display:grid;grid-template-columns:1fr}.player-actions{width:100%}.player-input-wrap input,.player-confirm-btn,.reset-btn{width:100%;min-width:0}}
     </style>
   </head>
   <body>
@@ -16,13 +16,14 @@
       <header class="topbar">
         <div><h1 class="title">RegensPurge</h1><p class="subtitle">Missionen, Punkte &amp; Abenteuer</p></div>
         <div class="player-panel">
-          <div class="player-actions"><label class="player-input-wrap">Spielername<input id="playerNameInput" type="text" value="Spieler" maxlength="22" /></label><button id="playerNameConfirmBtn" class="player-confirm-btn" type="button">Bestätigen</button></div>
+          <div class="player-actions"><label class="player-input-wrap">Teamname<input id="playerNameInput" type="text" value="Team" maxlength="22" /></label><button id="playerNameConfirmBtn" class="player-confirm-btn" type="button">Bestätigen</button></div>
           <button id="resetAllBtn" class="reset-btn" type="button">Daten löschen</button>
           <div class="score-box"><span class="score-label">Punkte</span><span id="scoreValue" class="score-value">0</span></div>
         </div>
       </header>
       <section class="leaderboard-panel"><h2 class="leaderboard-title">Bestenliste</h2><ol id="leaderboardList" class="leaderboard-list"></ol></section>
       <main id="board" class="board" aria-live="polite"></main>
+      <section class="gamelog-panel"><h2 class="leaderboard-title">Gamelog</h2><ol id="gameLogList" class="gamelog-list"></ol></section>
       <section id="finishScreen" class="finish-screen"><h2>Runde beendet!</h2><p id="finishSummary"></p><button id="newGameBtn" class="restart-btn" type="button">Neues Spiel</button></section>
     </div>
     <div id="confirmModal" class="modal" aria-modal="true" role="dialog"><div class="modal-card"><h2>Aufgabe erledigt?</h2><p id="confirmText">Bist du sicher?</p><div id="customPointsWrap" class="custom-points"><label>Punkte selbst eintragen<input id="customPointsInput" type="number" min="0" step="5" value="15" /></label></div><div class="modal-actions"><button id="cancelConfirmBtn" class="secondary-btn" type="button">Abbrechen</button><button id="confirmBtn" class="primary-btn" type="button">Bestätigen</button></div></div></div>
@@ -44,7 +45,8 @@
       const app = initializeApp(firebaseConfig);
       const db = getDatabase(app);
       const GAME_REF = ref(db, "gameState");
-      const CATALOG_VERSION = 39;
+      const CATALOG_VERSION = 40;
+      const ACTIVE_TASK_LIMIT = 3;
       const SECOND_PLAYER_TIME_MS = 5 * 60 * 1000;
 
       // Hier kannst du jede Aufgabe einzeln anpassen: points = Punkte, timeMinutes = Zeit in Minuten.
@@ -96,45 +98,84 @@
       const modal = $("confirmModal"), customWrap = $("customPointsWrap"), customInput = $("customPointsInput");
       let sharedState = null, pendingTaskId = null, toastTimer;
 
-      function playerName() { return (nameInput.value || "Spieler").trim().slice(0, 22) || "Spieler"; }
-      function playerKey() { return playerName().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "spieler"; }
+      function playerName() { return (nameInput.value || "Team").trim().slice(0, 22) || "Team"; }
+      function playerKey() { return playerName().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "team"; }
       function toast(message) { const el = $("toast"); el.textContent = message; el.style.opacity = "1"; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.style.opacity = "0", 2200); }
       function formatTimer(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); return `${String(Math.floor(s / 60)).padStart(2,"0")}:${String(s % 60).padStart(2,"0")}`; }
       function makeActiveTask(id) { const task = byId[id]; return { deadline: Date.now() + task.timeMinutes * 60000, points: task.points, customPoints: task.customPoints, completionCount: 0, completedBy: {} }; }
       function makeNewState() {
         const ids = tasks.map((task) => task.id).sort(() => Math.random() - 0.5);
         const activeTasks = {};
-        ids.splice(0, 5).forEach((id) => activeTasks[id] = makeActiveTask(id));
-        return { catalogVersion: CATALOG_VERSION, activeTasks, remainingTaskIds: ids, playerScores: {}, startedAt: Date.now(), finished: false };
+        ids.splice(0, ACTIVE_TASK_LIMIT).forEach((id) => activeTasks[id] = makeActiveTask(id));
+        return { catalogVersion: CATALOG_VERSION, activeTasks, remainingTaskIds: ids, playerScores: {}, gameLog: [], startedAt: Date.now(), finished: false };
+      }
+      function migrateState(current) {
+        const state = { ...current, activeTasks: { ...(current.activeTasks || {}) }, remainingTaskIds: Array.isArray(current.remainingTaskIds) ? [...current.remainingTaskIds] : [], playerScores: current.playerScores || {}, gameLog: Array.isArray(current.gameLog) ? current.gameLog : [] };
+        const activeIds = Object.keys(state.activeTasks);
+        const excessIds = activeIds.slice(ACTIVE_TASK_LIMIT);
+        for (const id of excessIds) delete state.activeTasks[id];
+        state.remainingTaskIds = [...excessIds, ...state.remainingTaskIds.filter((id) => !excessIds.includes(String(id)))];
+        state.catalogVersion = CATALOG_VERSION;
+        return state;
       }
       function normalizeState(state) {
         if (!state || typeof state !== "object") return null;
-        return { ...state, activeTasks: state.activeTasks || {}, remainingTaskIds: Array.isArray(state.remainingTaskIds) ? state.remainingTaskIds : [], playerScores: state.playerScores || {}, finished: Boolean(state.finished) };
+        return { ...state, activeTasks: state.activeTasks || {}, remainingTaskIds: Array.isArray(state.remainingTaskIds) ? state.remainingTaskIds : [], playerScores: state.playerScores || {}, gameLog: Array.isArray(state.gameLog) ? state.gameLog : [], finished: Boolean(state.finished) };
       }
       function renderLeaderboard(data) {
         const entries = Object.values(data || {}).filter((entry) => entry && typeof entry.score === "number").sort((a,b) => b.score-a.score).slice(0,5);
-        $("leaderboardList").innerHTML = entries.length ? entries.map((entry,i) => `<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${String(entry.name || "Spieler").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}</span><span class="leaderboard-score">${entry.score}</span></li>`).join("") : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+        $("leaderboardList").innerHTML = entries.length ? entries.map((entry,i) => `<li class="leaderboard-item"><span class="leaderboard-name">${i+1}. ${String(entry.name || "Team").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;","'":"&#39;"}[c]))}</span><span class="leaderboard-score">${entry.score}</span></li>`).join("") : '<li class="leaderboard-item"><span class="leaderboard-name">Noch keine Punkte</span><span class="leaderboard-score">0</span></li>';
+      }
+      function renderGameLog(log) {
+        const list = $("gameLogList");
+        list.replaceChildren();
+        const entries = [...(Array.isArray(log) ? log : [])].reverse().slice(0, 30);
+        if (!entries.length) {
+          const item = document.createElement("li");
+          item.className = "gamelog-item";
+          item.textContent = "Noch keine erledigten Aufgaben.";
+          list.append(item);
+          return;
+        }
+        for (const entry of entries) {
+          const item = document.createElement("li");
+          item.className = "gamelog-item";
+          const detail = document.createElement("span");
+          detail.textContent = `${entry.team || "Team"} hat Aufgabe #${entry.taskId} erledigt`;
+          const points = document.createElement("span");
+          points.className = "gamelog-points";
+          points.textContent = `+${Number(entry.points) || 0} Punkte`;
+          item.append(detail, points);
+          list.append(item);
+        }
       }
       function renderBoard() {
         const state = normalizeState(sharedState);
-        if (!state) { board.innerHTML = ""; scoreValue.textContent = "0"; return; }
+        if (!state) { board.innerHTML = ""; scoreValue.textContent = "0"; renderGameLog([]); return; }
         const key = playerKey(), score = Number(state.playerScores[key] || 0);
         scoreValue.textContent = String(score);
         const active = Object.entries(state.activeTasks).filter(([id]) => byId[id]).map(([id,task]) => ({...byId[id],...task,customPoints:byId[id].customPoints,id:Number(id)}));
-        board.innerHTML = active.map((task) => {
+        active.sort((a,b) => Number(Boolean(a.completedBy?.[key])) - Number(Boolean(b.completedBy?.[key])));
+        board.innerHTML = active.slice(0, ACTIVE_TASK_LIMIT).map((task) => {
           const remaining = Math.max(0, task.deadline - Date.now()), count = Number(task.completionCount || 0);
           const done = Boolean(task.completedBy?.[key]);
-          const label = task.customPoints ? "Eigenepunkte" : count === 0 ? `${task.points} P` : `Weitere Spieler: ${task.points} P`;
+          const label = task.customPoints ? "Eigenepunkte" : count === 0 ? `${task.points} P` : `Weitere Teams: ${task.points} P`;
           const button = done ? "Von dir erledigt" : count > 0 ? "Auch erledigt" : "Aufgabe erledigt";
           const timerClass = remaining <= 30000 ? "danger" : remaining <= 60000 ? "warning" : "";
           return `<article class="task-card"><div class="card-image-wrap"><img src="images/${encodeURIComponent(task.image)}" alt="Aufgabe ${task.id}" /></div><div class="task-body"><div class="task-meta"><span class="badge">${label}</span><span class="timer ${timerClass}">${formatTimer(remaining)}</span></div><button class="task-button" type="button" data-task-id="${task.id}" ${done ? "disabled" : ""}>${button}</button></div></article>`;
         }).join("");
+        renderGameLog(state.gameLog);
         if (state.finished) { $("finishScreen").classList.add("show"); $("finishSummary").textContent = `${playerName()}, du hast insgesamt ${score} Punkte gesammelt.`; }
         else $("finishScreen").classList.remove("show");
       }
       async function initializeGame() {
-        try { await runTransaction(GAME_REF, (current) => current?.catalogVersion === CATALOG_VERSION ? current : makeNewState()); }
-        catch { toast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
+        try {
+          await runTransaction(GAME_REF, (current) => {
+            if (!current) return makeNewState();
+            if (current.catalogVersion === CATALOG_VERSION) return current;
+            return migrateState(current);
+          });
+        } catch { toast("Spielstand konnte nicht geladen werden. Firebase-Regeln prüfen."); }
       }
       function openConfirm(id) {
         const task = normalizeState(sharedState)?.activeTasks?.[id];
@@ -149,7 +190,7 @@
       function closeConfirm() { pendingTaskId = null; modal.classList.remove("show"); }
       async function completeTask() {
         if (pendingTaskId === null) return;
-        const id = pendingTaskId, key = playerKey();
+        const id = pendingTaskId, key = playerKey(), team = playerName();
         const custom = Boolean(byId[id]?.customPoints);
         const entered = Number(customInput.value);
         if (custom && (!Number.isFinite(entered) || entered < 0)) { toast("Bitte gültige Punkte eingeben."); return; }
@@ -162,6 +203,8 @@
             awarded = custom ? entered : Number(task.points);
             task.completionCount = Number(task.completionCount || 0) + 1;
             task.completedBy = { ...(task.completedBy || {}), [key]: true };
+            state.gameLog.push({ team, taskId: Number(id), points: awarded, timestamp: Date.now() });
+            state.gameLog = state.gameLog.slice(-100);
             if (first) {
               if (!custom) task.points = Math.ceil(awarded / 2);
               task.customPoints = custom;
@@ -175,7 +218,7 @@
             return state;
           }, { applyLocally: false });
           if (!result.committed) { toast("Aufgabe ist abgelaufen oder bereits erledigt."); return; }
-          set(ref(db, `leaderboard/${key}`), { name: playerName(), score: Number(result.snapshot.val()?.playerScores?.[key] || 0), updatedAt: Date.now() });
+          set(ref(db, `leaderboard/${key}`), { name: team, score: Number(result.snapshot.val()?.playerScores?.[key] || 0), updatedAt: Date.now() });
           toast(`Aufgabe erledigt! +${awarded} Punkte`);
         } catch { toast("Erledigung konnte nicht gespeichert werden."); }
       }
@@ -186,7 +229,7 @@
             if (!state || state.catalogVersion !== CATALOG_VERSION || state.finished) return;
             const now = Date.now();
             for (const [id, task] of Object.entries(state.activeTasks)) if (Number(task.deadline) <= now) delete state.activeTasks[id];
-            while (Object.keys(state.activeTasks).length < 5 && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
+            while (Object.keys(state.activeTasks).length < ACTIVE_TASK_LIMIT && state.remainingTaskIds.length) { const id = state.remainingTaskIds.shift(); state.activeTasks[id] = makeActiveTask(id); }
             if (!Object.keys(state.activeTasks).length && !state.remainingTaskIds.length) state.finished = true;
             return state;
           }, { applyLocally: false });
@@ -197,8 +240,8 @@
         try { await runTransaction(GAME_REF, () => makeNewState(), { applyLocally: false }); toast("Neues Spiel gestartet."); }
         catch { toast("Neues Spiel konnte nicht gestartet werden."); }
       }
-      $("playerNameInput").value = localStorage.getItem("regenspurge-player-name") || "Spieler";
-      $("playerNameConfirmBtn").addEventListener("click", () => { localStorage.setItem("regenspurge-player-name", playerName()); renderBoard(); toast(`Spielername gespeichert: ${playerName()}`); });
+      $("playerNameInput").value = localStorage.getItem("regenspurge-player-name") || "Team";
+      $("playerNameConfirmBtn").addEventListener("click", () => { localStorage.setItem("regenspurge-player-name", playerName()); renderBoard(); toast(`Teamname gespeichert: ${playerName()}`); });
       nameInput.addEventListener("input", renderBoard);
       board.addEventListener("click", (event) => { const button = event.target.closest("[data-task-id]"); if (button && !button.disabled) openConfirm(button.dataset.taskId); });
       $("cancelConfirmBtn").addEventListener("click", closeConfirm);
@@ -213,9 +256,7 @@
             set(ref(db, "leaderboard"), null)
           ]);
           toast("Spielstand und Bestenliste zurückgesetzt.");
-        } catch {
-          toast("Zurücksetzen fehlgeschlagen.");
-        }
+        } catch { toast("Zurücksetzen fehlgeschlagen."); }
       });
       onValue(GAME_REF, (snapshot) => { sharedState = snapshot.val(); if (!sharedState || sharedState.catalogVersion !== CATALOG_VERSION) initializeGame(); renderBoard(); });
       onValue(ref(db,"leaderboard"), (snapshot) => renderLeaderboard(snapshot.val() || {}), () => renderLeaderboard({}));
